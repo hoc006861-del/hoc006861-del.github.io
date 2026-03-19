@@ -1,0 +1,1012 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARM Cortex-M Architecture</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --green: #00ff88;
+  --green-dim: #00cc6a;
+  --green-glow: rgba(0,255,136,0.12);
+  --amber: #ffb700;
+  --red: #ff4466;
+  --blue: #00aaff;
+  --purple: #bb88ff;
+  --cyan: #00ffee;
+  --bg: #050a08;
+  --bg2: #0a1210;
+  --bg3: #0f1c18;
+  --border: rgba(0,255,136,0.2);
+  --text: #c8ffe8;
+  --text-dim: #5a8f75;
+}
+
+* { margin:0; padding:0; box-sizing:border-box; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: 'Exo 2', sans-serif;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+body::before {
+  content:'';
+  position:fixed; inset:0;
+  background-image:
+    linear-gradient(rgba(0,255,136,0.025) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,255,136,0.025) 1px, transparent 1px);
+  background-size: 40px 40px;
+  pointer-events:none; z-index:0;
+}
+
+body::after {
+  content:'';
+  position:fixed; inset:0;
+  background: repeating-linear-gradient(0deg, transparent, transparent 2px, rgba(0,0,0,0.1) 2px, rgba(0,0,0,0.1) 4px);
+  pointer-events:none; z-index:1;
+}
+
+.wrap { max-width:1200px; margin:0 auto; padding:40px 24px 100px; position:relative; z-index:2; }
+
+/* ── HEADER ── */
+.header { text-align:center; margin-bottom:70px; animation: fadeDown 0.8s ease both; }
+.badge {
+  display:inline-block;
+  font-family:'Share Tech Mono',monospace;
+  font-size:11px; letter-spacing:4px; color:var(--green);
+  border:1px solid var(--border); padding:6px 18px;
+  background:var(--green-glow); margin-bottom:20px;
+}
+h1 {
+  font-family:'Orbitron',monospace;
+  font-size: clamp(28px,5vw,56px);
+  font-weight:900; color:var(--green);
+  text-shadow: 0 0 30px rgba(0,255,136,0.5), 0 0 80px rgba(0,255,136,0.15);
+  letter-spacing:3px; line-height:1.1;
+}
+.sub {
+  font-family:'Share Tech Mono',monospace;
+  color:var(--text-dim); font-size:12px;
+  margin-top:12px; letter-spacing:2px;
+}
+
+/* ── SECTION TITLE ── */
+.sec-title {
+  font-family:'Orbitron',monospace;
+  font-size:13px; color:var(--green);
+  letter-spacing:3px; margin-bottom:24px;
+  display:flex; align-items:center; gap:12px;
+}
+.sec-title::after {
+  content:''; flex:1; height:1px;
+  background: linear-gradient(to right, var(--border), transparent);
+}
+
+/* ── CARD ── */
+.card {
+  background:var(--bg2);
+  border:1px solid var(--border);
+  padding:28px;
+  position:relative;
+  transition: border-color .3s, box-shadow .3s;
+  margin-bottom:20px;
+}
+.card::before {
+  content:''; position:absolute;
+  top:-1px; left:-1px; width:16px; height:16px;
+  border-top:2px solid var(--green); border-left:2px solid var(--green);
+}
+.card::after {
+  content:''; position:absolute;
+  bottom:-1px; right:-1px; width:16px; height:16px;
+  border-bottom:2px solid var(--green); border-right:2px solid var(--green);
+}
+.card:hover { border-color:var(--green); box-shadow:0 0 24px var(--green-glow); }
+
+/* ── FAMILY TABLE ── */
+.family-grid {
+  display:grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px,1fr));
+  gap:16px; margin-bottom:40px;
+}
+.family-card {
+  background:var(--bg2); border:1px solid var(--border);
+  padding:20px; position:relative; overflow:hidden;
+  transition: transform .2s, border-color .3s, box-shadow .3s;
+  animation: fadeIn .5s ease both;
+}
+.family-card:hover { transform:translateY(-3px); border-color:var(--green); box-shadow:0 8px 30px var(--green-glow); }
+.family-card .top-bar {
+  position:absolute; top:0; left:0; right:0; height:3px;
+}
+.fc-m0 .top-bar { background:var(--green); }
+.fc-m3 .top-bar { background:var(--amber); }
+.fc-m4 .top-bar { background:var(--red); }
+.fc-m7 .top-bar { background:var(--blue); }
+.family-name {
+  font-family:'Orbitron',monospace; font-size:18px; font-weight:900;
+  margin-bottom:6px; margin-top:4px;
+}
+.fc-m0 .family-name { color:var(--green); }
+.fc-m3 .family-name { color:var(--amber); }
+.fc-m4 .family-name { color:var(--red); }
+.fc-m7 .family-name { color:var(--blue); }
+.family-label {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  letter-spacing:2px; color:var(--text-dim); margin-bottom:14px;
+}
+.family-chips { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:12px; }
+.chip {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  padding:3px 8px; background:var(--bg3); border:1px solid var(--border);
+  color:var(--text-dim); letter-spacing:1px;
+}
+.family-desc { font-size:12px; color:var(--text-dim); line-height:1.6; }
+
+/* ── REGISTER BLOCK ── */
+.reg-grid {
+  display:grid;
+  grid-template-columns: 1fr 1fr;
+  gap:0;
+}
+@media(max-width:700px) { .reg-grid { grid-template-columns:1fr; } }
+
+.reg-row {
+  display:flex; align-items:stretch;
+  border-bottom:1px solid var(--border);
+  border-right:1px solid var(--border);
+  transition: background .2s;
+}
+.reg-row:hover { background:var(--green-glow); }
+.reg-name {
+  font-family:'Orbitron',monospace; font-size:13px; font-weight:700;
+  min-width:56px; padding:12px 14px;
+  display:flex; align-items:center; justify-content:center;
+  border-right:1px solid var(--border);
+}
+.reg-alias {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:var(--amber); margin-left:4px;
+}
+.reg-info { padding:10px 14px; flex:1; }
+.reg-info-title { font-size:12px; color:var(--text); font-weight:600; margin-bottom:3px; }
+.reg-info-desc { font-family:'Share Tech Mono',monospace; font-size:10px; color:var(--text-dim); line-height:1.5; }
+
+.reg-gp .reg-name { color:var(--green); }
+.reg-param .reg-name { color:var(--cyan); }
+.reg-saved .reg-name { color:var(--purple); }
+.reg-special .reg-name { color:var(--amber); }
+.reg-pc .reg-name { color:var(--red); }
+.reg-sp .reg-name { color:var(--blue); }
+.reg-lr .reg-name { color:var(--amber); }
+
+/* ── MODES DIAGRAM ── */
+.modes-wrap {
+  display:grid; grid-template-columns:1fr auto 1fr; gap:0;
+  align-items:center; margin:8px 0;
+}
+.mode-box {
+  padding:24px; border:1px solid var(--border);
+  background:var(--bg3);
+}
+.mode-title { font-family:'Orbitron',monospace; font-size:14px; font-weight:700; margin-bottom:10px; }
+.mode-box.thread .mode-title { color:var(--green); }
+.mode-box.handler .mode-title { color:var(--red); }
+.mode-prop {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--text-dim); margin-bottom:5px; padding-left:10px;
+  position:relative;
+}
+.mode-prop::before { content:'▸'; position:absolute; left:0; color:var(--green); font-size:9px; top:2px; }
+
+.mode-arrow {
+  display:flex; flex-direction:column; align-items:center;
+  gap:6px; padding:0 20px;
+}
+.arrow-line {
+  width:2px; height:30px;
+  background:linear-gradient(to bottom, var(--border), var(--green));
+}
+.arrow-label {
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  color:var(--text-dim); letter-spacing:1px; text-align:center;
+  white-space:nowrap;
+}
+.arrow-head { color:var(--green); font-size:14px; }
+
+/* ── STACK DIAGRAM ── */
+.stack-visual {
+  display:flex; gap:32px; align-items:flex-start; flex-wrap:wrap;
+}
+.stack-col { flex:1; min-width:200px; }
+.stack-label {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  letter-spacing:2px; color:var(--text-dim); margin-bottom:10px; text-align:center;
+}
+.stack-frame { }
+.stack-seg {
+  border:1px solid var(--border);
+  padding:8px 12px;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  margin-bottom:-1px;
+  display:flex; justify-content:space-between; align-items:center;
+  transition: background .2s;
+}
+.stack-seg:hover { background:var(--green-glow); }
+.stack-seg .addr { color:var(--text-dim); font-size:10px; }
+.seg-msp { border-color:var(--blue); color:var(--blue); }
+.seg-ta  { border-color:var(--green); color:var(--green); }
+.seg-tb  { border-color:var(--amber); color:var(--amber); }
+.seg-tc  { border-color:var(--purple); color:var(--purple); }
+.seg-empty { color:var(--text-dim); font-style:italic; }
+
+.sp-arrow {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  display:flex; align-items:center; gap:8px;
+  padding:4px 12px; margin-bottom:-1px;
+}
+
+/* ── EXCEPTION FRAME ── */
+.exc-frame {
+  display:flex; flex-direction:column; gap:0;
+  max-width:400px;
+}
+.exc-seg {
+  border:1px solid var(--border); border-top:none;
+  padding:10px 16px;
+  display:flex; justify-content:space-between;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  transition: background .2s;
+}
+.exc-seg:first-child { border-top:1px solid var(--border); }
+.exc-seg:hover { background:var(--green-glow); }
+.exc-seg .name { color:var(--text); }
+.exc-seg .desc { color:var(--text-dim); font-size:10px; }
+.exc-seg.auto { background: rgba(0,255,136,0.04); }
+.exc-seg.manual { background: rgba(187,136,255,0.04); }
+.exc-legend { display:flex; gap:20px; margin-top:12px; }
+.exc-legend-item {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  color:var(--text-dim); display:flex; align-items:center; gap:6px;
+}
+.dot-auto { width:8px; height:8px; background:rgba(0,255,136,0.3); border:1px solid var(--green); }
+.dot-manual { width:8px; height:8px; background:rgba(187,136,255,0.3); border:1px solid var(--purple); }
+
+/* ── NVIC ── */
+.nvic-table { width:100%; border-collapse:collapse; }
+.nvic-table th {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  letter-spacing:2px; color:var(--text-dim);
+  padding:10px 14px; border-bottom:1px solid var(--border);
+  text-align:left; font-weight:400;
+}
+.nvic-table td {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  padding:10px 14px; border-bottom:1px solid rgba(0,255,136,0.07);
+  vertical-align:top;
+}
+.nvic-table tr:hover td { background:var(--green-glow); }
+.prio-bar-wrap { display:flex; align-items:center; gap:8px; }
+.prio-bar {
+  height:6px; border-radius:1px;
+  background:var(--green); transition:width .3s;
+}
+.prio-num { color:var(--amber); min-width:16px; }
+.prio-cant { color:var(--red); }
+.prio-can { color:var(--green); }
+
+/* ── FREERTOS EXCEPTIONS ── */
+.exc-3 {
+  display:grid; grid-template-columns:repeat(3,1fr); gap:16px;
+}
+@media(max-width:700px){ .exc-3 { grid-template-columns:1fr; } }
+.exc-card {
+  background:var(--bg3); border:1px solid var(--border);
+  padding:20px; position:relative; overflow:hidden;
+  transition: border-color .3s, box-shadow .3s;
+}
+.exc-card:hover { border-color:var(--amber); box-shadow:0 0 20px rgba(255,183,0,0.1); }
+.exc-card-num {
+  font-family:'Orbitron',monospace; font-size:10px;
+  letter-spacing:2px; color:var(--text-dim); margin-bottom:6px;
+}
+.exc-card-name {
+  font-family:'Orbitron',monospace; font-size:14px;
+  font-weight:700; color:var(--amber); margin-bottom:12px;
+}
+.exc-card-role {
+  font-size:12px; color:var(--text); line-height:1.7;
+  border-top:1px solid var(--border); padding-top:10px;
+}
+.exc-card-tag {
+  position:absolute; top:12px; right:12px;
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  padding:2px 8px; letter-spacing:1px;
+  border:1px solid var(--amber); color:var(--amber);
+  background:rgba(255,183,0,0.06);
+}
+
+/* ── PIPELINE ── */
+.pipeline-wrap { overflow-x:auto; }
+.pipeline-table {
+  border-collapse:collapse; min-width:600px; width:100%;
+}
+.pipeline-table th {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  letter-spacing:2px; color:var(--text-dim);
+  padding:8px 12px; border:1px solid var(--border);
+  background:var(--bg3); font-weight:400;
+}
+.pipeline-table td {
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  padding:10px 12px; border:1px solid var(--border);
+  text-align:center; min-width:60px;
+}
+.stage-fetch  { background:rgba(0,255,136,0.15); color:var(--green); }
+.stage-decode { background:rgba(255,183,0,0.12); color:var(--amber); }
+.stage-exec   { background:rgba(255,68,102,0.12); color:var(--red); }
+.stage-empty  { color:var(--text-dim); }
+.stage-label  { font-weight:600; color:var(--text); background:var(--bg3); text-align:left; }
+
+/* ── CODE BLOCK ── */
+pre {
+  background:var(--bg3); border:1px solid var(--border);
+  padding:18px 20px; overflow-x:auto;
+  font-family:'Share Tech Mono',monospace; font-size:12px;
+  line-height:1.7; color:var(--text);
+  border-left:3px solid var(--green);
+}
+.kw  { color:var(--cyan); }
+.cm  { color:var(--text-dim); font-style:italic; }
+.num { color:var(--amber); }
+.fn  { color:var(--green); }
+.str { color:var(--purple); }
+.reg-hl { color:var(--red); }
+.op  { color:var(--amber); }
+
+/* ── TWO-COL ── */
+.two-col { display:grid; grid-template-columns:1fr 1fr; gap:20px; }
+@media(max-width:700px){ .two-col { grid-template-columns:1fr; } }
+
+/* ── XPSR ── */
+.xpsr-bits {
+  display:flex; gap:0; overflow-x:auto;
+}
+.bit-group { display:flex; flex-direction:column; }
+.bit-cells { display:flex; }
+.bit-cell {
+  width:28px; height:28px;
+  border:1px solid var(--border); border-right:none;
+  display:flex; align-items:center; justify-content:center;
+  font-family:'Share Tech Mono',monospace; font-size:9px;
+  color:var(--text-dim); flex-shrink:0;
+  transition: background .2s;
+}
+.bit-cell:last-child { border-right:1px solid var(--border); }
+.bit-cell:hover { background:var(--green-glow); }
+.bit-cell.flag-n { background:rgba(255,68,102,0.15); color:var(--red); border-color:var(--red); }
+.bit-cell.flag-z { background:rgba(0,170,255,0.15); color:var(--blue); border-color:var(--blue); }
+.bit-cell.flag-c { background:rgba(255,183,0,0.15); color:var(--amber); border-color:var(--amber); }
+.bit-cell.flag-v { background:rgba(187,136,255,0.15); color:var(--purple); border-color:var(--purple); }
+.bit-cell.exc-bits { background:rgba(0,255,136,0.1); color:var(--green); }
+.bit-label-row { display:flex; }
+.bit-label {
+  width:28px; text-align:center;
+  font-family:'Share Tech Mono',monospace; font-size:8px;
+  color:var(--text-dim); padding-top:3px; flex-shrink:0;
+}
+
+.flag-legend { display:flex; flex-wrap:wrap; gap:10px; margin-top:14px; }
+.flag-item {
+  font-family:'Share Tech Mono',monospace; font-size:10px;
+  display:flex; align-items:center; gap:6px; padding:4px 10px;
+  border:1px solid var(--border); background:var(--bg3);
+}
+.flag-dot { width:8px; height:8px; }
+.fn-n { background:var(--red); }
+.fn-z { background:var(--blue); }
+.fn-c { background:var(--amber); }
+.fn-v { background:var(--purple); }
+
+/* ── SECTION SPACING ── */
+.section { margin-bottom:60px; animation: fadeIn .6s ease both; }
+.section:nth-child(1){ animation-delay:.1s }
+.section:nth-child(2){ animation-delay:.2s }
+.section:nth-child(3){ animation-delay:.3s }
+.section:nth-child(4){ animation-delay:.4s }
+.section:nth-child(5){ animation-delay:.5s }
+.section:nth-child(6){ animation-delay:.6s }
+.section:nth-child(7){ animation-delay:.7s }
+.section:nth-child(8){ animation-delay:.8s }
+
+/* ── NOTE ── */
+.note {
+  background:rgba(255,183,0,0.06); border:1px solid rgba(255,183,0,0.3);
+  border-left:3px solid var(--amber);
+  padding:12px 16px; margin-top:16px;
+  font-family:'Share Tech Mono',monospace; font-size:11px;
+  color:var(--amber); line-height:1.6;
+}
+.note-green {
+  background:rgba(0,255,136,0.06); border:1px solid rgba(0,255,136,0.25);
+  border-left:3px solid var(--green);
+  color:var(--green);
+}
+
+/* ── ANIMATE ── */
+@keyframes fadeDown {
+  from{ opacity:0; transform:translateY(-20px) }
+  to  { opacity:1; transform:translateY(0) }
+}
+@keyframes fadeIn {
+  from{ opacity:0; transform:translateY(14px) }
+  to  { opacity:1; transform:translateY(0) }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<!-- HEADER -->
+<div class="header">
+  <div class="badge">// ARCHITECTURE DEEP DIVE v1.0</div>
+  <h1>ARM<br>CORTEX-M</h1>
+  <p class="sub">Kiến trúc vi xử lý nền tảng của FreeRTOS Embedded</p>
+</div>
+
+<!-- 1. FAMILY -->
+<div class="section">
+  <div class="sec-title">// 01 — DÒNG CORTEX-M</div>
+  <div class="family-grid">
+    <div class="family-card fc-m0">
+      <div class="top-bar"></div>
+      <div class="family-name">M0 / M0+</div>
+      <div class="family-label">ULTRA LOW POWER</div>
+      <div class="family-chips">
+        <span class="chip">STM32F0</span>
+        <span class="chip">RP2040</span>
+        <span class="chip">SAMD21</span>
+      </div>
+      <div class="family-desc">Kiến trúc đơn giản nhất. Tập lệnh Thumb-2 rút gọn. Tiêu thụ điện cực thấp. FreeRTOS chạy được nhưng hạn chế tính năng.</div>
+    </div>
+    <div class="family-card fc-m3">
+      <div class="top-bar"></div>
+      <div class="family-name">M3</div>
+      <div class="family-label">MAINSTREAM</div>
+      <div class="family-chips">
+        <span class="chip">STM32F1</span>
+        <span class="chip">STM32F2</span>
+        <span class="chip">nRF51</span>
+      </div>
+      <div class="family-desc">Phổ biến nhất cho embedded. Có hardware divide & multiply. Đủ mạnh cho hầu hết ứng dụng FreeRTOS. Pipeline 3-stage.</div>
+    </div>
+    <div class="family-card fc-m4">
+      <div class="top-bar"></div>
+      <div class="family-name">M4</div>
+      <div class="family-label">WITH FPU + DSP</div>
+      <div class="family-chips">
+        <span class="chip">STM32F4</span>
+        <span class="chip">nRF52840</span>
+        <span class="chip">K64F</span>
+      </div>
+      <div class="family-desc">Thêm FPU (Floating Point Unit) và DSP instructions. Lý tưởng cho IoT cần xử lý tín hiệu. <strong style="color:var(--red)">Target chính của Roadmap này.</strong></div>
+    </div>
+    <div class="family-card fc-m7">
+      <div class="top-bar"></div>
+      <div class="family-name">M7</div>
+      <div class="family-label">HIGH PERFORMANCE</div>
+      <div class="family-chips">
+        <span class="chip">STM32H7</span>
+        <span class="chip">STM32F7</span>
+        <span class="chip">i.MX RT</span>
+      </div>
+      <div class="family-desc">Pipeline 6-stage, dual-issue superscalar. Cache L1. Hiệu năng ngang tầm application processor. FreeRTOS + RTOS kernel nặng.</div>
+    </div>
+  </div>
+</div>
+
+<!-- 2. REGISTERS -->
+<div class="section">
+  <div class="sec-title">// 02 — REGISTER SET (32-BIT EACH)</div>
+  <div class="card" style="padding:0; overflow:hidden;">
+    <div class="reg-grid">
+
+      <div class="reg-row reg-param">
+        <div class="reg-name">R0<span class="reg-alias">a1</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title">Tham số 1 / Giá trị trả về</div>
+          <div class="reg-info-desc">Argument 1 khi gọi hàm. Kết quả return nằm ở đây. Caller-saved — có thể bị thay đổi sau khi gọi hàm.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-param">
+        <div class="reg-name">R1<span class="reg-alias">a2</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title">Tham số 2</div>
+          <div class="reg-info-desc">Argument 2. Cùng nhóm caller-saved với R0, R2, R3.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-param">
+        <div class="reg-name">R2<span class="reg-alias">a3</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title">Tham số 3</div>
+          <div class="reg-info-desc">Argument 3. Hàm có >4 tham số → phần còn lại đẩy lên stack.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-param">
+        <div class="reg-name">R3<span class="reg-alias">a4</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title">Tham số 4</div>
+          <div class="reg-info-desc">Argument 4. R0–R3 bị clobber qua function call — compiler tự lưu nếu cần.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R4</div>
+        <div class="reg-info">
+          <div class="reg-info-title">Callee-saved #1</div>
+          <div class="reg-info-desc">Nếu hàm dùng R4 → phải PUSH R4 lúc đầu, POP R4 trước return. FreeRTOS lưu R4–R11 khi context switch.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R5</div>
+        <div class="reg-info">
+          <div class="reg-info-title">Callee-saved #2</div>
+          <div class="reg-info-desc">Bảo toàn qua function calls. Dùng cho biến local dài hạn trong hàm.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R6</div>
+        <div class="reg-info">
+          <div class="reg-info-title">Callee-saved #3</div>
+          <div class="reg-info-desc">Bảo toàn qua function calls.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R7</div>
+        <div class="reg-info">
+          <div class="reg-info-title">Callee-saved #4 / Frame Pointer</div>
+          <div class="reg-info-desc">Đôi khi GCC dùng làm Frame Pointer (FP) để debug stack frame.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R8</div>
+        <div class="reg-info"><div class="reg-info-title">Callee-saved #5</div><div class="reg-info-desc">Bảo toàn qua function calls.</div></div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R9</div>
+        <div class="reg-info"><div class="reg-info-title">Callee-saved #6</div><div class="reg-info-desc">Đôi khi dùng làm Static Base (SB) pointer.</div></div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R10</div>
+        <div class="reg-info"><div class="reg-info-title">Callee-saved #7</div><div class="reg-info-desc">Bảo toàn qua function calls.</div></div>
+      </div>
+
+      <div class="reg-row reg-saved">
+        <div class="reg-name">R11</div>
+        <div class="reg-info">
+          <div class="reg-info-title">Callee-saved #8</div>
+          <div class="reg-info-desc">R4–R11 là nhóm FreeRTOS phải lưu/khôi phục thủ công khi context switch (stacking phần mềm).</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-gp">
+        <div class="reg-name">R12<span class="reg-alias">IP</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title">Intra-procedure Scratch</div>
+          <div class="reg-info-desc">Dùng tạm bởi linker veneers (glue code). Caller-saved.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-sp">
+        <div class="reg-name">R13<span class="reg-alias">SP</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title" style="color:var(--blue)">Stack Pointer ★★★</div>
+          <div class="reg-info-desc">Có 2 bank: <span style="color:var(--blue)">MSP</span> (Main — dùng cho interrupt/kernel) và <span style="color:var(--green)">PSP</span> (Process — FreeRTOS cấp riêng cho từng task). Luôn aligned 8 bytes.</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-lr">
+        <div class="reg-name">R14<span class="reg-alias">LR</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title" style="color:var(--amber)">Link Register ★★</div>
+          <div class="reg-info-desc">Tự động lưu địa chỉ return khi gọi BL/BLX. Khi exception: LR = EXC_RETURN (giá trị đặc biệt báo cách return từ interrupt).</div>
+        </div>
+      </div>
+
+      <div class="reg-row reg-pc">
+        <div class="reg-name">R15<span class="reg-alias">PC</span></div>
+        <div class="reg-info">
+          <div class="reg-info-title" style="color:var(--red)">Program Counter ★★★</div>
+          <div class="reg-info-desc">Luôn trỏ đến lệnh sắp fetch (hiện tại + 4). Context switch = thay đổi PC + SP để nhảy sang task khác. Bit 0 luôn = 0 (Thumb mode).</div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+  <div class="note">
+    ★ FreeRTOS Context Switch: Hardware tự lưu R0–R3, R12, LR, PC, xPSR (8 regs). FreeRTOS tự lưu R4–R11 (8 regs). Tổng = 16 registers × 4 bytes = 64 bytes mỗi lần switch.
+  </div>
+</div>
+
+<!-- 3. OPERATING MODES -->
+<div class="section">
+  <div class="sec-title">// 03 — CHẾ ĐỘ HOẠT ĐỘNG</div>
+  <div class="card">
+    <div class="modes-wrap">
+      <div class="mode-box handler">
+        <div class="mode-title">⚡ HANDLER MODE</div>
+        <div class="mode-prop">Khi xử lý exception / interrupt</div>
+        <div class="mode-prop">Dùng MSP (Main Stack Pointer)</div>
+        <div class="mode-prop">Luôn Privileged — full quyền</div>
+        <div class="mode-prop">Truy cập tất cả registers đặc biệt</div>
+        <div class="mode-prop">FreeRTOS kernel, ISR chạy ở đây</div>
+      </div>
+
+      <div class="mode-arrow">
+        <div class="arrow-label">Exception</div>
+        <div class="arrow-line" style="background:linear-gradient(to bottom, var(--red), transparent)"></div>
+        <div class="arrow-head">▼</div>
+        <div class="arrow-head" style="transform:rotate(180deg); color:var(--green)">▼</div>
+        <div class="arrow-line" style="background:linear-gradient(to top, var(--green), transparent)"></div>
+        <div class="arrow-label">EXC_RETURN</div>
+      </div>
+
+      <div class="mode-box thread">
+        <div class="mode-title">🟢 THREAD MODE</div>
+        <div class="mode-prop">Code ứng dụng bình thường</div>
+        <div class="mode-prop">Dùng PSP (Process Stack Pointer)</div>
+        <div class="mode-prop">Privileged hoặc Unprivileged</div>
+        <div class="mode-prop">Mỗi FreeRTOS task chạy ở đây</div>
+        <div class="mode-prop">Stack riêng biệt cho từng task</div>
+      </div>
+    </div>
+
+    <div style="margin-top:20px;">
+      <div class="note note-green">
+        💡 FreeRTOS dùng 2 stack pointer thông minh: khi SysTick/PendSV interrupt vào → CPU tự switch sang MSP (Handler Mode). Khi return về task → CPU switch lại PSP (Thread Mode). Đây là lý do mỗi task có vùng stack độc lập.
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 4. MEMORY MAP -->
+<div class="section">
+  <div class="sec-title">// 04 — RAM LAYOUT KHI FREERTOS CHẠY</div>
+  <div class="two-col">
+    <div>
+      <div class="card" style="padding:0; overflow:hidden;">
+        <div class="stack-visual" style="flex-direction:column; gap:0;">
+          <div class="stack-label" style="padding:10px; border-bottom:1px solid var(--border)">RAM (địa chỉ tăng dần ↑)</div>
+
+          <div class="stack-seg seg-empty">
+            <span>.data / .bss (global vars)</span>
+            <span class="addr">0x2000_0000</span>
+          </div>
+          <div class="stack-seg seg-empty">
+            <span>.heap (FreeRTOS objects)</span>
+            <span class="addr">↓ grows down</span>
+          </div>
+          <div class="stack-seg" style="color:var(--text-dim); font-style:italic;">
+            <span>— free space —</span>
+            <span class="addr"></span>
+          </div>
+          <div class="stack-seg seg-msp">
+            <span>MSP Stack (Kernel + ISR)</span>
+            <span class="addr">~1KB</span>
+          </div>
+          <div class="stack-seg seg-ta">
+            <span>Task A Stack (PSP_A)</span>
+            <span class="addr">configMINIMAL_STACK_SIZE</span>
+          </div>
+          <div class="stack-seg seg-tb">
+            <span>Task B Stack (PSP_B)</span>
+            <span class="addr">stackDepth × 4</span>
+          </div>
+          <div class="stack-seg seg-tc">
+            <span>Task C Stack (PSP_C)</span>
+            <span class="addr">↑ grows up</span>
+          </div>
+          <div class="stack-seg seg-empty">
+            <span>RAM top</span>
+            <span class="addr">0x2000_FFFF</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card">
+        <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-dim); margin-bottom:16px; letter-spacing:1px;">EXCEPTION STACK FRAME</div>
+        <div style="font-size:11px; color:var(--text-dim); margin-bottom:12px; font-family:'Share Tech Mono',monospace;">Khi exception xảy ra, hardware tự push 8 registers:</div>
+
+        <div class="exc-frame">
+          <div class="exc-seg auto">
+            <span class="name">xPSR</span>
+            <span class="desc">Program status — N,Z,C,V flags</span>
+          </div>
+          <div class="exc-seg auto">
+            <span class="name">PC</span>
+            <span class="desc">Địa chỉ tiếp tục sau interrupt</span>
+          </div>
+          <div class="exc-seg auto">
+            <span class="name">LR</span>
+            <span class="desc">Link register hiện tại</span>
+          </div>
+          <div class="exc-seg auto">
+            <span class="name">R12</span>
+            <span class="desc">Scratch register</span>
+          </div>
+          <div class="exc-seg auto">
+            <span class="name">R3, R2, R1, R0</span>
+            <span class="desc">Caller-saved registers</span>
+          </div>
+          <div class="exc-seg manual">
+            <span class="name">R4–R11</span>
+            <span class="desc" style="color:var(--purple)">FreeRTOS tự lưu thủ công</span>
+          </div>
+        </div>
+
+        <div class="exc-legend">
+          <div class="exc-legend-item"><div class="dot-auto"></div>Hardware tự push</div>
+          <div class="exc-legend-item"><div class="dot-manual"></div>FreeRTOS software push</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 5. xPSR -->
+<div class="section">
+  <div class="sec-title">// 05 — xPSR — PROGRAM STATUS REGISTER</div>
+  <div class="card">
+    <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-dim); margin-bottom:14px;">32-bit register — mỗi ô = 1 bit (bit 31 → bit 0)</div>
+    <div class="xpsr-bits">
+      <div class="bit-group">
+        <div class="bit-cells">
+          <div class="bit-cell flag-n">N</div>
+          <div class="bit-cell flag-z">Z</div>
+          <div class="bit-cell flag-c">C</div>
+          <div class="bit-cell flag-v">V</div>
+          <div class="bit-cell">Q</div>
+          <div class="bit-cell">IT</div>
+          <div class="bit-cell">IT</div>
+          <div class="bit-cell">T</div>
+          <!-- reserved -->
+          <div class="bit-cell" style="width:56px; color:var(--text-dim); font-size:8px;">reserved</div>
+          <!-- ISR number -->
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+          <div class="bit-cell exc-bits">ISR</div>
+        </div>
+        <div class="bit-label-row">
+          <div class="bit-label">31</div>
+          <div class="bit-label">30</div>
+          <div class="bit-label">29</div>
+          <div class="bit-label">28</div>
+          <div class="bit-label">27</div>
+          <div class="bit-label">26</div>
+          <div class="bit-label">25</div>
+          <div class="bit-label">24</div>
+          <div class="bit-label" style="width:56px;">23..9</div>
+          <div class="bit-label">8</div>
+          <div class="bit-label">7</div>
+          <div class="bit-label">6</div>
+          <div class="bit-label">5</div>
+          <div class="bit-label">4</div>
+          <div class="bit-label">3</div>
+          <div class="bit-label">2</div>
+          <div class="bit-label">1</div>
+          <div class="bit-label">0</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="flag-legend">
+      <div class="flag-item"><div class="flag-dot fn-n"></div><span style="color:var(--red)">N</span> — Negative: kết quả < 0</div>
+      <div class="flag-item"><div class="flag-dot fn-z"></div><span style="color:var(--blue)">Z</span> — Zero: kết quả = 0</div>
+      <div class="flag-item"><div class="flag-dot fn-c"></div><span style="color:var(--amber)">C</span> — Carry: tràn không dấu</div>
+      <div class="flag-item"><div class="flag-dot fn-v"></div><span style="color:var(--purple)">V</span> — Overflow: tràn có dấu</div>
+      <div class="flag-item"><div class="flag-dot" style="background:var(--green)"></div><span style="color:var(--green)">ISR[8:0]</span> — Exception number đang chạy (0 = Thread Mode)</div>
+    </div>
+
+    <div style="margin-top:20px;">
+<pre><span class="cm">// CPU cập nhật xPSR sau mỗi phép tính — if/else dùng flags này</span>
+<span class="kw">int</span> a <span class="op">=</span> <span class="num">5</span> <span class="op">-</span> <span class="num">5</span>;   <span class="cm">// Z=1 (bằng 0), N=0, C=1</span>
+<span class="kw">int</span> b <span class="op">=</span> <span class="op">-</span><span class="num">3</span>;      <span class="cm">// N=1 (âm)</span>
+<span class="kw">int</span> c <span class="op">=</span> <span class="num">200</span> <span class="op">+</span> <span class="num">100</span>; <span class="cm">// uint8: C=1 (carry out)</span>
+
+<span class="cm">// Lệnh branch dùng flags:</span>
+<span class="kw">if</span> (a <span class="op">==</span> <span class="num">0</span>) { }  <span class="cm">// CPU: BEQ → check Z flag</span>
+<span class="kw">if</span> (b <span class="op">&lt;</span>  <span class="num">0</span>) { }  <span class="cm">// CPU: BMI → check N flag</span>
+<span class="kw">if</span> (a <span class="op">!=</span> b)  { }  <span class="cm">// CPU: BNE → check Z flag = 0</span></pre>
+    </div>
+  </div>
+</div>
+
+<!-- 6. PIPELINE -->
+<div class="section">
+  <div class="sec-title">// 06 — PIPELINE 3-STAGE (CORTEX-M3/M4)</div>
+  <div class="card">
+    <div class="pipeline-wrap">
+      <table class="pipeline-table">
+        <tr>
+          <th>STAGE / CYCLE</th>
+          <th>T=1</th><th>T=2</th><th>T=3</th>
+          <th>T=4</th><th>T=5</th><th>T=6</th><th>T=7</th>
+        </tr>
+        <tr>
+          <td class="stage-label">FETCH (đọc lệnh)</td>
+          <td class="stage-fetch">I1</td>
+          <td class="stage-fetch">I2</td>
+          <td class="stage-fetch">I3</td>
+          <td class="stage-fetch">I4</td>
+          <td class="stage-fetch">I5</td>
+          <td class="stage-fetch">I6</td>
+          <td class="stage-fetch">I7</td>
+        </tr>
+        <tr>
+          <td class="stage-label">DECODE (giải mã)</td>
+          <td class="stage-empty">—</td>
+          <td class="stage-decode">I1</td>
+          <td class="stage-decode">I2</td>
+          <td class="stage-decode">I3</td>
+          <td class="stage-decode">I4</td>
+          <td class="stage-decode">I5</td>
+          <td class="stage-decode">I6</td>
+        </tr>
+        <tr>
+          <td class="stage-label">EXECUTE (thực thi)</td>
+          <td class="stage-empty">—</td>
+          <td class="stage-empty">—</td>
+          <td class="stage-exec">I1</td>
+          <td class="stage-exec">I2</td>
+          <td class="stage-exec">I3</td>
+          <td class="stage-exec">I4</td>
+          <td class="stage-exec">I5</td>
+        </tr>
+      </table>
+    </div>
+    <div class="note">
+      ⚡ Khi interrupt xảy ra tại T=4: CPU phải flush I5, I6, I7 đang trong pipeline → latency ~12 cycles. Đây là lý do FreeRTOS tính worst-case interrupt response time dựa vào đặc điểm này. Cortex-M7 có pipeline 6-stage nên latency cao hơn nhưng throughput tốt hơn nhiều.
+    </div>
+  </div>
+</div>
+
+<!-- 7. FREERTOS EXCEPTIONS -->
+<div class="section">
+  <div class="sec-title">// 07 — 3 EXCEPTIONS FREERTOS SỬ DỤNG</div>
+  <div class="exc-3">
+    <div class="exc-card">
+      <div class="exc-card-tag">TICK</div>
+      <div class="exc-card-num">EXCEPTION #15</div>
+      <div class="exc-card-name">SysTick</div>
+      <div class="exc-card-role">
+        Bộ đếm thời gian hệ thống. Mỗi <strong style="color:var(--amber)">1ms</strong> (configTICK_RATE_HZ=1000) sẽ fire một lần.<br><br>
+        • Tăng <code style="color:var(--cyan)">xTickCount</code><br>
+        • Wake up tasks đang delay<br>
+        • Kiểm tra nếu cần switch → trigger PendSV<br><br>
+        Priority: <strong style="color:var(--red)">Thấp nhất</strong> (configKERNEL_INTERRUPT_PRIORITY)
+      </div>
+    </div>
+    <div class="exc-card">
+      <div class="exc-card-tag">SWITCH</div>
+      <div class="exc-card-num">EXCEPTION #14</div>
+      <div class="exc-card-name">PendSV</div>
+      <div class="exc-card-role">
+        Thực hiện context switch thực sự. Được thiết kế đặc biệt để có <strong style="color:var(--amber)">priority thấp nhất</strong> — chỉ chạy khi không có interrupt nào khác pending.<br><br>
+        • Push R4–R11 của task hiện tại<br>
+        • Lưu PSP<br>
+        • Chọn task tiếp theo (scheduler)<br>
+        • Khôi phục PSP + R4–R11 của task mới
+      </div>
+    </div>
+    <div class="exc-card">
+      <div class="exc-card-tag">START</div>
+      <div class="exc-card-num">EXCEPTION #11</div>
+      <div class="exc-card-name">SVC</div>
+      <div class="exc-card-role">
+        SuperVisor Call — chỉ dùng <strong style="color:var(--amber)">1 lần duy nhất</strong> khi <code style="color:var(--cyan)">vTaskStartScheduler()</code> khởi động task đầu tiên.<br><br>
+        • Chuyển từ privileged sang unprivileged<br>
+        • Switch stack từ MSP sang PSP<br>
+        • Jump vào task đầu tiên<br><br>
+        Sau đó không dùng SVC nữa (PendSV đảm nhận)
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 8. NVIC -->
+<div class="section">
+  <div class="sec-title">// 08 — NVIC & PRIORITY RULES</div>
+  <div class="card">
+    <div style="font-family:'Share Tech Mono',monospace; font-size:11px; color:var(--text-dim); margin-bottom:18px;">
+      Cortex-M4 có 4-bit priority = 16 mức (0 = cao nhất, 15 = thấp nhất).<br>
+      configMAX_SYSCALL_INTERRUPT_PRIORITY = 5 (ví dụ)
+    </div>
+    <table class="nvic-table">
+      <tr>
+        <th>PRIORITY</th>
+        <th>GỌI FREERTOS API?</th>
+        <th>VÍ DỤ SỬ DỤNG</th>
+        <th>GHI CHÚ</th>
+      </tr>
+      <tr>
+        <td>
+          <div class="prio-bar-wrap">
+            <div class="prio-bar" style="width:16px"></div>
+            <span class="prio-num">0–4</span>
+          </div>
+        </td>
+        <td class="prio-cant">✗ KHÔNG được</td>
+        <td>Hard real-time ISR, motor control, safety-critical</td>
+        <td style="color:var(--text-dim)">Chạy ngay lập tức, không bị FreeRTOS mask</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="prio-bar-wrap">
+            <div class="prio-bar" style="width:36px; background:var(--amber)"></div>
+            <span class="prio-num" style="color:var(--amber)">5–14</span>
+          </div>
+        </td>
+        <td class="prio-can">✓ ĐƯỢC (dùng ...FromISR)</td>
+        <td>UART RX, SPI, I2C, Button interrupt</td>
+        <td style="color:var(--text-dim)">Dùng xQueueSendFromISR(), xSemaphoreGiveFromISR()</td>
+      </tr>
+      <tr>
+        <td>
+          <div class="prio-bar-wrap">
+            <div class="prio-bar" style="width:60px; background:var(--red)"></div>
+            <span class="prio-num" style="color:var(--red)">15</span>
+          </div>
+        </td>
+        <td style="color:var(--text-dim)">— (kernel only)</td>
+        <td>SysTick, PendSV</td>
+        <td style="color:var(--text-dim)">FreeRTOS tự đặt, thấp nhất để không block app IRQ</td>
+      </tr>
+    </table>
+
+    <div style="margin-top:20px;">
+<pre><span class="cm">// FreeRTOSConfig.h — cấu hình priority</span>
+<span class="kw">#define</span> <span class="fn">configMAX_SYSCALL_INTERRUPT_PRIORITY</span>   <span class="num">5</span>
+<span class="kw">#define</span> <span class="fn">configKERNEL_INTERRUPT_PRIORITY</span>        <span class="num">15</span>
+
+<span class="cm">// Trong code ứng dụng:</span>
+<span class="fn">NVIC_SetPriority</span>(USART1_IRQn, <span class="num">6</span>);  <span class="cm">// ✓ Được gọi FromISR()</span>
+<span class="fn">NVIC_SetPriority</span>(TIM1_IRQn,   <span class="num">2</span>);  <span class="cm">// ✗ KHÔNG gọi FreeRTOS API!</span>
+<span class="fn">NVIC_EnableIRQ</span>(USART1_IRQn);
+
+<span class="cm">// Trong ISR priority 6 — ĐÚNG:</span>
+<span class="kw">void</span> <span class="fn">USART1_IRQHandler</span>(<span class="kw">void</span>) {
+    BaseType_t xHigherPriorityTaskWoken = pdFALSE;
+    <span class="fn">xQueueSendFromISR</span>(rxQueue, &byte, &xHigherPriorityTaskWoken);
+    <span class="fn">portYIELD_FROM_ISR</span>(xHigherPriorityTaskWoken); <span class="cm">// Trigger PendSV nếu cần</span>
+}</pre>
+    </div>
+    <div class="note">
+      ⚠️ Lỗi phổ biến nhất: gọi xQueueSend() (không có FromISR) bên trong ISR → crash ngay lập tức hoặc deadlock. Luôn dùng ...FromISR() variants bên trong interrupt handler!
+    </div>
+  </div>
+</div>
+
+</div><!-- end wrap -->
+</body>
+</html>

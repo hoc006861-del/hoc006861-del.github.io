@@ -1,0 +1,614 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>ARM Cortex-M Register Map</title>
+<link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<style>
+  *{box-sizing:border-box;margin:0;padding:0;}
+  body{
+    background:#050a08;min-height:100vh;
+    font-family:'Share Tech Mono',monospace;color:#c8ffe8;padding:24px 16px;
+    background-image:linear-gradient(rgba(0,255,136,.025) 1px,transparent 1px),linear-gradient(90deg,rgba(0,255,136,.025) 1px,transparent 1px);
+    background-size:32px 32px;
+  }
+  ::-webkit-scrollbar{width:4px}::-webkit-scrollbar-track{background:#0a1210}::-webkit-scrollbar-thumb{background:#00ff8844}
+  .header{text-align:center;margin-bottom:28px}
+  .badge{font-size:10px;letter-spacing:4px;color:#00ff88;border:1px solid rgba(0,255,136,.2);display:inline-block;padding:4px 14px;margin-bottom:10px}
+  h1{font-family:'Orbitron',monospace;font-size:22px;font-weight:900;color:#00ff88;text-shadow:0 0 24px rgba(0,255,136,.4);letter-spacing:3px}
+  .sub{font-size:11px;color:#5a8f75;margin-top:6px;letter-spacing:2px}
+  .layout{max-width:980px;margin:0 auto;display:grid;grid-template-columns:240px 1fr;gap:16px}
+  .grp-lbl{font-size:9px;letter-spacing:2px;color:#5a8f75;margin:12px 0 6px 2px}
+  .grp-lbl:first-child{margin-top:0}
+  .reg-btn{background:#0a1210;border:1px solid rgba(0,255,136,.15);color:#5a8f75;padding:6px 10px;cursor:pointer;font-family:'Share Tech Mono',monospace;font-size:12px;transition:all .15s;text-align:left;width:100%;display:flex;align-items:center;gap:8px;}
+  .reg-btn:hover{border-color:rgba(0,255,136,.5);color:#c8ffe8;background:#0f1c18}
+  .reg-btn.active{background:#0f1c18}
+  .rname{font-weight:700}.rrole{font-size:10px;color:#3a5f4a}
+  .card{background:#0a1210;border:1px solid rgba(0,255,136,.15);padding:16px;position:relative;margin-bottom:12px}
+  .card::before{content:'';position:absolute;top:-1px;left:-1px;width:14px;height:14px;border-top:2px solid #00ff88;border-left:2px solid #00ff88}
+  .slbl{font-size:9px;color:#5a8f75;letter-spacing:2px;margin-bottom:8px}
+  .ft-card{border-color:rgba(255,183,0,.2)!important;background:#0d1108!important}
+  .ft-lbl{color:#ffb700!important}
+  .bit-scale{display:flex;gap:2px;overflow-x:auto;margin-bottom:3px}
+  .bit-num{min-width:20px;height:14px;display:flex;align-items:center;justify-content:center;font-size:8px;color:#3a5f4a;flex-shrink:0}
+  .bf-row{display:flex;gap:2px;overflow-x:auto;margin-bottom:10px}
+  .bf-block{height:34px;display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;cursor:pointer;flex-shrink:0;transition:filter .15s,transform .1s;border:1px solid;letter-spacing:1px;overflow:hidden;white-space:nowrap;padding:0 4px;}
+  .bf-block:hover{filter:brightness(1.5);transform:translateY(-2px);z-index:10}
+  .bf-block.selected{filter:brightness(1.7);transform:translateY(-3px);z-index:11;box-shadow:0 4px 12px rgba(0,0,0,.5)}
+  .bf-info{background:#080e0c;border:1px solid rgba(0,255,136,.15);padding:14px;margin-bottom:10px;min-height:80px;transition:all .2s}
+  .bf-info-name{font-size:15px;font-weight:700;margin-bottom:4px}
+  .bf-info-bits{font-size:10px;color:#5a8f75;margin-bottom:8px}
+  .bf-info-desc{font-size:12px;color:#c8ffe8;line-height:1.8}
+  .bf-info-vals{margin-top:10px;display:flex;flex-direction:column;gap:3px}
+  .bf-val-row{font-size:11px;padding:4px 10px;border-left:2px solid;display:flex;gap:12px;align-items:center}
+  .bf-val-code{min-width:80px;font-weight:700}
+  .bf-val-meaning{color:#c8ffe8}
+  .two-col{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px}
+  .detail-text{font-size:12px;color:#c8ffe8;line-height:1.7}
+  .example-text{font-size:11px;color:#00ff88;line-height:1.8;white-space:pre-line}
+  .sp-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+  .sp-box{background:#080e0c;padding:12px}
+  .sp-name{font-family:'Orbitron',monospace;font-size:16px;margin-bottom:4px}
+  .sp-full{font-size:10px;color:#5a8f75;margin-bottom:8px}
+  .sp-item{font-size:11px;color:#c8ffe8;padding:2px 0 3px 8px;margin-bottom:3px}
+  .exc-row{display:flex;gap:12px;align-items:center;padding:8px 12px;margin-bottom:4px}
+  .exc-val{color:#ff4466;font-weight:700;font-size:12px;min-width:100px}
+  .exc-desc{font-size:11px;color:#c8ffe8;flex:1}
+  .exc-tag{font-size:9px;color:#00ff88;border:1px solid rgba(0,255,136,.4);padding:2px 6px}
+  .sim-inputs{display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap}
+  .sim-lbl{font-size:10px;color:#5a8f75;margin-bottom:4px}
+  .sim-input{width:64px;background:#0f1c18;border:1px solid rgba(0,255,136,.2);color:#00ff88;font-family:'Share Tech Mono',monospace;font-size:13px;padding:4px 8px;outline:none}
+  .sim-result{font-size:12px;color:#c8ffe8;margin-bottom:10px}
+  .sim-big{color:#00ff88;font-weight:700;font-size:15px}
+  .sim-hex{color:#5a8f75;font-size:10px;margin-left:8px}
+  .flag-boxes{display:flex;gap:8px;flex-wrap:wrap}
+  .flag-box{padding:8px 14px;text-align:center;min-width:60px;border:1px solid rgba(0,255,136,.1);background:#0a1210;transition:all .2s}
+  .flag-box .fbn{font-family:'Orbitron',monospace;font-size:16px;font-weight:700;color:#3a5f4a}
+  .flag-box .fbv{font-size:20px;font-weight:700;color:#3a5f4a}
+  .flag-box .fbd{font-size:9px;color:#5a8f75}
+  .flag-box.on .fbn,.flag-box.on .fbv{color:var(--fc)}
+  .ctx-grid{display:flex;gap:0;overflow-x:auto}
+  .ctx-grp{margin-right:16px}
+  .ctx-title{margin-bottom:6px;white-space:pre-line;font-size:10px;line-height:1.5}
+  .ctx-reg{background:#0a1210;padding:3px 10px;font-size:11px;display:flex;justify-content:space-between;gap:16px;margin-bottom:2px}
+  .ctx-offset{font-size:9px;color:#3a5f4a}
+  .ctx-note{display:flex;align-items:center;color:#5a8f75;font-size:11px;padding-left:8px;line-height:2}
+  @keyframes fadeIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+  .fadein{animation:fadeIn .2s ease both}
+  @media(max-width:700px){.layout{grid-template-columns:1fr}.two-col,.sp-grid{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="header">
+  <div class="badge">// ARM CORTEX-M · REGISTER MAP</div>
+  <h1>CPU REGISTERS</h1>
+  <p class="sub">Nhấn thanh ghi → Nhấn vùng bit màu để xem tên & chức năng từng bit</p>
+</div>
+<div class="layout">
+  <div id="left-panel"></div>
+  <div id="right-panel"></div>
+</div>
+<script>
+const R=[
+  {id:"R0",group:"general",label:"R0",role:"Tham số 1 / Return value",
+   detail:"Khi gọi hàm: chứa tham số thứ nhất. Sau khi hàm return: chứa kết quả trả về. Caller-saved — hàm được gọi có thể thay đổi R0 tùy ý.",
+   example:"int add(int a,int b) → a nằm ở R0\nReturn value luôn ở R0\nmystery(3,4,2) → R0=3 lúc đầu",
+   freertos:"FreeRTOS truyền pvParameters của task qua R0 khi khởi tạo stack. Khi task function được gọi lần đầu, R0 = con trỏ tham số từ xTaskCreate().",
+   color:"#00ff88",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00ff88",
+     desc:"Toàn bộ 32 bit là data — không có bit đặc biệt nào.\n\nR0 phục vụ hai vai trò theo ARM Calling Convention (AAPCS):\n1. Argument register: chứa tham số thứ nhất khi gọi hàm\n2. Return value: chứa giá trị trả về sau khi hàm kết thúc\n\nCaller-saved: nếu bạn cần giá trị R0 sau khi gọi hàm con, phải tự lưu trước.",
+     vals:[
+       {code:"0x00000000",m:"Hàm trả về 0 / NULL / false / pdFAIL"},
+       {code:"0x00000001",m:"Hàm trả về 1 / true / pdPASS (FreeRTOS)"},
+       {code:"Any 32-bit",m:"int, uint32_t, pointer, enum... bất kỳ"},
+     ]
+   }]
+  },
+  {id:"R1",group:"general",label:"R1",role:"Tham số 2",
+   detail:"Tham số thứ hai khi gọi hàm. Caller-saved — có thể bị thay đổi bởi hàm được gọi.",
+   example:"mystery(3,4,2) → R1=4\nxQueueSend(queue,&data,ticks)\n  R0=queue R1=&data R2=ticks",
+   freertos:"Không có vai trò đặc biệt trong FreeRTOS kernel.",
+   color:"#00ff88",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00ff88",
+     desc:"Toàn bộ 32 bit là data. Chứa tham số thứ 2 theo AAPCS.\n\nNếu hàm có ít hơn 2 tham số, R1 có thể chứa giá trị rác.\nNếu hàm trả về struct 64-bit: R0=low 32 bits, R1=high 32 bits.",
+     vals:[
+       {code:"Argument 2",m:"Tham số thứ hai: int, pointer, enum..."},
+       {code:"Return high",m:"Phần cao khi return 64-bit value"},
+     ]
+   }]
+  },
+  {id:"R2",group:"general",label:"R2",role:"Tham số 3",
+   detail:"Tham số thứ ba khi gọi hàm. Caller-saved.",
+   example:"mystery(3,4,2) → R2=2\nHàm >4 tham số: phần còn lại push lên stack",
+   freertos:"Không có vai trò đặc biệt.",
+   color:"#00ff88",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00ff88",
+     desc:"Toàn bộ 32 bit là data. Chứa tham số thứ 3 theo AAPCS.\n\nNếu hàm có >4 tham số: R0-R3 chứa 4 tham số đầu, các tham số còn lại được push lên stack theo thứ tự ngược.",
+     vals:[{code:"Argument 3",m:"Tham số thứ ba"}]
+   }]
+  },
+  {id:"R3",group:"general",label:"R3",role:"Tham số 4 / Scratch",
+   detail:"Tham số thứ 4. Đặc biệt: CPU tự động push R3 vào exception stack frame khi interrupt.",
+   example:"Compiler dùng tự do — không cần PUSH/POP\nAuto-saved khi interrupt xảy ra",
+   freertos:"Tự động saved vào exception stack frame (hardware làm, không cần code).",
+   color:"#00ff88",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00ff88",
+     desc:"Toàn bộ 32 bit là data. Caller-saved.\n\nR3 nằm trong exception stack frame — CPU tự động push R3 lên PSP/MSP khi bắt đầu xử lý interrupt. Đây là một phần của cơ chế 'automatic state saving' của Cortex-M, giúp ISR có thể dùng R0-R3 mà không cần PUSH/POP thủ công.",
+     vals:[
+       {code:"Argument 4",m:"Tham số thứ tư"},
+       {code:"Auto-pushed",m:"Hardware tự push vào exception frame"},
+       {code:"Auto-popped",m:"Hardware tự pop khi exception return"},
+     ]
+   }]
+  },
+  {id:"R4",group:"saved",label:"R4",role:"Callee-saved",
+   detail:"Hàm PHẢI bảo toàn R4. Nếu dùng → PUSH đầu hàm, POP trước return. Compiler tự làm nếu cần.",
+   example:"PUSH {R4, LR}    ; lưu R4\n...dùng R4...\nPOP  {R4, PC}    ; restore & return",
+   freertos:"FreeRTOS PendSV_Handler lưu R4-R11 thủ công vào PSP stack khi context switch. Đây là phần 'manual stacking' bổ sung cho auto-stacking của hardware.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00aaff",
+     desc:"Toàn bộ 32 bit là data. Callee-saved (còn gọi là non-volatile register).\n\nCallee (hàm được gọi) có trách nhiệm bảo toàn R4. Nếu hàm cần dùng R4, nó phải:\n1. PUSH R4 lên stack đầu hàm\n2. Dùng R4 tùy ý\n3. POP R4 trước khi return\n\nCompiler (GCC, Keil) tự thêm PUSH/POP nếu optimization cần dùng R4.",
+     vals:[
+       {code:"PUSH {R4}",m:"Lưu R4 lên stack trước khi dùng"},
+       {code:"POP {R4}",m:"Restore R4 trước khi return"},
+       {code:"FreeRTOS",m:"PendSV lưu R4 vào task stack khi preempt"},
+     ]
+   }]
+  },
+  {id:"R5",group:"saved",label:"R5",role:"Callee-saved",
+   detail:"Hàm PHẢI bảo toàn R5. Compiler tự thêm PUSH/POP nếu cần dùng.",
+   example:"Compiler tự thêm PUSH/POP\nThường dùng giữ loop counter",
+   freertos:"Lưu trong TCB (Task Control Block) khi task bị preempt.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00aaff",
+     desc:"Callee-saved. Toàn bộ 32 bit là data. Cùng quy tắc với R4: hàm phải bảo toàn nếu cần dùng. FreeRTOS lưu R5 vào stack của task khi bị preempt bởi scheduler.",
+     vals:[{code:"Callee-saved",m:"Bảo toàn qua lời gọi hàm"}]
+   }]
+  },
+  {id:"R6",group:"saved",label:"R6",role:"Callee-saved",
+   detail:"Callee-saved. Thường dùng làm loop counter hoặc giữ con trỏ struct ổn định.",
+   example:"for(int i=0;i<n;i++)\n  → compiler có thể dùng R6=i\n  giữ nguyên qua nhiều function call",
+   freertos:"Lưu trong TCB khi task bị preempt.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00aaff",
+     desc:"Callee-saved. Hay được dùng để giữ con trỏ struct hoặc loop counter ổn định qua nhiều vòng lặp, vì callee-saved đảm bảo giá trị không bị thay đổi bởi hàm con gọi bên trong vòng lặp.",
+     vals:[{code:"Callee-saved",m:"Bảo toàn qua lời gọi hàm"}]
+   }]
+  },
+  {id:"R7",group:"saved",label:"R7",role:"Callee-saved / Frame Pointer",
+   detail:"Callee-saved. Thumb code (GCC) thường dùng R7 làm Frame Pointer cho debugger.",
+   example:"Thumb-1 (M0): R7 = Frame Pointer\nTrỏ vào đáy stack frame hàm hiện tại\nDebugger dùng để unwind call stack",
+   freertos:"Lưu trong TCB khi task bị preempt.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0] / FP",hi:31,lo:0,color:"#00aaff",
+     desc:"Callee-saved. Trong Thumb-1 code (Cortex-M0), GCC dùng R7 làm Frame Pointer (FP) — trỏ vào đáy stack frame của hàm hiện tại.\n\nFrame Pointer giúp debugger 'unwind' call stack — biết được ai gọi ai, và tìm được biến local trên stack.\n\nTrên Cortex-M4 với -O2, GCC thường dùng -fomit-frame-pointer để tắt FP và dùng R7 làm general register.",
+     vals:[
+       {code:"Frame Pointer",m:"Trỏ vào đáy stack frame (Thumb-1/GCC)"},
+       {code:"Debugger",m:"Dùng để unwind call stack"},
+       {code:"-fomit-fp",m:"Tắt FP → R7 dùng làm general register"},
+     ]
+   }]
+  },
+  {id:"R8",group:"saved",label:"R8",role:"Callee-saved (M3/M4 only)",
+   detail:"Callee-saved. Chỉ có trong Cortex-M3/M4 (Thumb-2). Cortex-M0 chỉ dùng được với lệnh đặc biệt.",
+   example:"Thumb-2 (M3/M4): dùng tự do\nThumb-1 (M0): chỉ MOV R8,Rx\nkhông dùng được trong ADD, CMP...",
+   freertos:"Lưu trong TCB khi task bị preempt.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00aaff",
+     desc:"Callee-saved. Chỉ khả dụng đầy đủ trong Thumb-2 instruction set (Cortex-M3/M4/M7).\n\nCortex-M0 chỉ có Thumb-1: R8-R15 là 'high registers', nhiều lệnh không encode được R8. Phải dùng lệnh MOV đặc biệt để truy cập R8 trên M0 — compiler biết cách xử lý nhưng kém hiệu quả hơn.",
+     vals:[
+       {code:"M0 (Thumb-1)",m:"Chỉ dùng được với MOV — không có ADD R8,..."},
+       {code:"M3/M4 (Thumb-2)",m:"Dùng tự do như R0-R7"},
+     ]
+   }]
+  },
+  {id:"R9",group:"saved",label:"R9",role:"Callee-saved / Static Base",
+   detail:"Callee-saved. Một số toolchain dùng R9 làm Static Base (SB) cho position-independent code.",
+   example:"PIC mode: R9 = SB (Static Base)\ntrỏ vào data segment cố định\nEmbedded thường không dùng PIC",
+   freertos:"Lưu trong TCB khi task bị preempt.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0] / SB",hi:31,lo:0,color:"#00aaff",
+     desc:"Callee-saved. Trong Position Independent Code (PIC), R9 đôi khi dùng làm Static Base — trỏ vào vùng nhớ cố định của module để truy cập global variables mà không biết địa chỉ tuyệt đối.\n\nEmbedded firmware thường link to fixed address nên không cần PIC. R9 dùng như general callee-saved register.",
+     vals:[
+       {code:"SB (PIC)",m:"Static Base cho position-independent code"},
+       {code:"Normal",m:"General callee-saved register"},
+     ]
+   }]
+  },
+  {id:"R10",group:"saved",label:"R10",role:"Callee-saved",
+   detail:"Callee-saved. Dùng tự do.",
+   example:"Compiler dùng cho biến local\nkhi R4-R9 đã hết",
+   freertos:"Lưu trong TCB khi task bị preempt.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0]",hi:31,lo:0,color:"#00aaff",
+     desc:"Callee-saved. Toàn bộ 32 bit là data. Dùng tự do theo cùng quy tắc với R4-R9.",
+     vals:[{code:"Callee-saved",m:"Bảo toàn qua lời gọi hàm"}]
+   }]
+  },
+  {id:"R11",group:"saved",label:"R11",role:"Callee-saved / Frame Pointer",
+   detail:"Callee-saved. ARM32 mode dùng R11 làm Frame Pointer. Thumb-2 ít khi dùng FP.",
+   example:"ARM32 mode: R11 = Frame Pointer\nThumb-2: thường không dùng FP\n-fomit-frame-pointer tắt FP",
+   freertos:"Lưu trong TCB khi task bị preempt.",
+   color:"#00aaff",
+   bf:[{name:"DATA[31:0] / FP",hi:31,lo:0,color:"#00aaff",
+     desc:"Callee-saved. Trong ARM (32-bit) mode, R11 là Frame Pointer tiêu chuẩn theo AAPCS. Trong Thumb-2 (Cortex-M), ít phổ biến hơn — hầu hết embedded code dùng -fomit-frame-pointer để tối ưu.\n\nGCC với optimization -O1 trở lên thường tắt frame pointer.",
+     vals:[
+       {code:"ARM mode",m:"Frame Pointer tiêu chuẩn (AAPCS)"},
+       {code:"Thumb-2",m:"Thường không dùng làm FP (tối ưu hơn)"},
+     ]
+   }]
+  },
+  {id:"R12",group:"scratch",label:"R12 (IP)",role:"Intra-Procedure Scratch",
+   detail:"Scratch register — không cần bảo toàn. Linker dùng làm veneer. Auto-pushed vào exception frame.",
+   example:"Linker veneer: BL target quá xa\nIP=địa chỉ trung gian để nhảy xa\nAuto-saved khi interrupt xảy ra",
+   freertos:"Tự động saved trong exception stack frame khi interrupt — hardware làm.",
+   color:"#ffb700",
+   bf:[{name:"IP / DATA[31:0]",hi:31,lo:0,color:"#ffb700",
+     desc:"Intra-Procedure call scratch register (IP). Không cần bảo toàn — cả caller lẫn callee đều có thể thay đổi tùy ý.\n\nLinker dùng IP làm 'veneer' khi lệnh BL không đủ tầm với target (> 16MB trên Thumb-2). Linker tạo một đoạn code nhỏ (veneer): load địa chỉ đích vào IP rồi BX IP.\n\nCPU tự động push R12 vào exception frame khi interrupt — không cần thủ công.",
+     vals:[
+       {code:"Veneer",m:"Linker dùng để nhảy xa hơn tầm BL"},
+       {code:"Auto-pushed",m:"Hardware push vào exception frame"},
+       {code:"Scratch",m:"Có thể bị thay đổi bất kỳ lúc nào"},
+     ]
+   }]
+  },
+  {id:"R13",group:"special",label:"R13 (SP)",role:"Stack Pointer",
+   detail:"Trỏ đến đỉnh stack. Có 2 SP vật lý: MSP (kernel/interrupt) và PSP (FreeRTOS tasks). Bit 1-0 luôn = 00.",
+   example:"MSP: dùng khi boot & interrupt\nPSP: FreeRTOS cấp cho từng task\nCONTROL[1]=1 → Thread mode dùng PSP",
+   freertos:"FreeRTOS lưu PSP của mỗi task vào TCB->pxTopOfStack. Context switch = đổi PSP sang task kế tiếp. MSP chỉ dùng trong PendSV_Handler (kernel).",
+   color:"#ff4466",special:"sp",
+   bf:[
+     {name:"ADDR[31:2]",hi:31,lo:2,color:"#ff4466",
+      desc:"30 bit địa chỉ stack — trỏ vào RAM, đỉnh stack hiện tại.\n\nStack Cortex-M tăng xuống dưới (Full Descending Stack):\n• PUSH → SP giảm 4, ghi vào [SP]\n• POP  → đọc từ [SP], SP tăng 4\n\nCó 2 Stack Pointer vật lý (bank register):\n• MSP (Main SP): dùng khi reset, boot, exception/interrupt handler\n• PSP (Process SP): FreeRTOS cấp riêng cho mỗi task, dùng khi task đang chạy\n\nBit CONTROL[1] quyết định Thread mode dùng SP nào:\n• CONTROL[1]=0 → Thread mode dùng MSP\n• CONTROL[1]=1 → Thread mode dùng PSP (FreeRTOS set cái này)",
+      vals:[
+        {code:"MSP",m:"Reset, exception handler, FreeRTOS kernel"},
+        {code:"PSP",m:"FreeRTOS task — mỗi task có PSP riêng"},
+        {code:"CONTROL[1]",m:"=1 để chọn PSP trong Thread mode"},
+      ]
+     },
+     {name:"RES[1:0]",hi:1,lo:0,color:"#333355",
+      desc:"Hai bit thấp LUÔN = 0b00 — bắt buộc bởi kiến trúc ARM.\n\nStack phải word-aligned (4-byte alignment). Nếu SP không aligned → Usage Fault exception.\n\nGhi 1 vào bit 0 hoặc 1 bị hardware ignore. Khi đọc SP, hai bit này luôn = 0.",
+      vals:[
+        {code:"00",m:"Always — 4-byte alignment bắt buộc"},
+        {code:"01/10/11",m:"Không hợp lệ → hardware ignore / fault"},
+      ]
+     }
+   ]
+  },
+  {id:"R14",group:"special",label:"R14 (LR)",role:"Link Register",
+   detail:"Lưu địa chỉ return khi gọi hàm. Khi exception: chứa EXC_RETURN magic value để biết cách return.",
+   example:"BL myFunc → LR = địa chỉ sau BL\nBX LR → jump về địa chỉ trong LR\nException: LR = 0xFFFFFFFx",
+   freertos:"FreeRTOS PendSV_Handler dùng EXC_RETURN=0xFFFFFFFD để return về Thread mode dùng PSP — tiếp tục chạy task.",
+   color:"#ff4466",special:"lr",
+   bf:[
+     {name:"RETURN[31:1]",hi:31,lo:1,color:"#ff4466",
+      desc:"31 bit địa chỉ return — CPU nhảy về đây khi gặp BX LR hoặc POP {PC}.\n\nKhi lệnh BL myFunc thực thi:\n1. LR = địa chỉ lệnh sau BL (return address)\n2. PC = địa chỉ myFunc\n3. Khi myFunc kết thúc: BX LR → PC = LR\n\nKhi exception xảy ra, hardware nạp giá trị đặc biệt EXC_RETURN vào LR thay vì return address thông thường. EXC_RETURN có dạng 0xFFFFFFEx hoặc 0xFFFFFFFx.",
+      vals:[
+        {code:"Normal",m:"Địa chỉ sau lệnh BL (return address)"},
+        {code:"0xFFFFFFF1",m:"EXC_RETURN: Handler mode, MSP"},
+        {code:"0xFFFFFFF9",m:"EXC_RETURN: Thread mode, MSP"},
+        {code:"0xFFFFFFFD",m:"EXC_RETURN: Thread mode, PSP ← FreeRTOS"},
+      ]
+     },
+     {name:"THUMB[0]",hi:0,lo:0,color:"#ffb700",
+      desc:"Bit 0 = Thumb mode selector khi dùng LR làm branch target.\n\n• = 1: Thumb code (bắt buộc trên Cortex-M)\n• = 0: ARM code → INVSTATE HardFault ngay lập tức!\n\nKhi dùng làm EXC_RETURN, bit 0 là một phần của magic value (không có nghĩa mode).\n\nĐây là lý do function pointers thường có địa chỉ lẻ trên ARM: thực ra địa chỉ là even, bit 0 = 1 chỉ là Thumb indicator.",
+      vals:[
+        {code:"1",m:"Thumb mode — bắt buộc trên Cortex-M"},
+        {code:"0",m:"ARM mode → HardFault INVSTATE"},
+      ]
+     }
+   ]
+  },
+  {id:"R15",group:"special",label:"R15 (PC)",role:"Program Counter",
+   detail:"Địa chỉ lệnh đang thực thi. Do pipeline, PC = địa chỉ thực + 4. Ghi PC = nhảy đến đó.",
+   example:"Ghi PC = unconditional branch\nPC+4 do 3-stage pipeline\nBit 0 phải =1 khi dùng làm target",
+   freertos:"Lưu trong exception stack frame. FreeRTOS restore PC khi resume task = tiếp tục đúng chỗ bị interrupt.",
+   color:"#ff4466",special:"pc",
+   bf:[
+     {name:"ADDR[31:1]",hi:31,lo:1,color:"#ff4466",
+      desc:"31 bit địa chỉ lệnh. Do 3-stage pipeline (Fetch → Decode → Execute), PC luôn trỏ đến lệnh đang Fetch, không phải lệnh đang Execute.\n\nTrên Cortex-M3/M4: khi đọc PC trong đang chạy lệnh ở địa chỉ X → PC = X + 4.\n\nGhi trực tiếp vào PC = branch không điều kiện đến địa chỉ đó (tương đương lệnh B).\n\nKhi exception: hardware tự lưu PC (địa chỉ lệnh bị ngắt) vào exception stack frame.",
+      vals:[
+        {code:"Read: PC+4",m:"Luôn ahead do 3-stage pipeline"},
+        {code:"Write",m:"Ghi PC = nhảy đến địa chỉ (branch)"},
+        {code:"Exception",m:"Hardware save PC vào stack frame"},
+      ]
+     },
+     {name:"THUMB[0]",hi:0,lo:0,color:"#ffb700",
+      desc:"Bit 0 của PC:\n• Khi ĐỌC PC: luôn = 0 (cleared bởi hardware)\n• Khi VIẾT PC để branch: phải = 1 (Thumb mode)\n\nĐây là lý do function pointers trên ARM có địa chỉ lẻ:\nVD: 0x08001234 là địa chỉ thực, nhưng function pointer = 0x08001235 (bit 0 = 1 = Thumb indicator).\n\nNếu set bit 0 = 0 khi branch → CPU cố dùng ARM mode → HardFault INVSTATE.",
+      vals:[
+        {code:"Read: 0",m:"Luôn cleared khi đọc"},
+        {code:"Write: 1",m:"Phải set để branch Thumb mode"},
+        {code:"0x08001235",m:"Function pointer: addr|1 = Thumb indicator"},
+      ]
+     }
+   ]
+  },
+  {id:"xPSR",group:"xpsr",label:"xPSR",role:"Program Status Register",
+   detail:"Ghép của APSR + IPSR + EPSR. Chứa flags kết quả tính toán, Thumb bit, IT state, và exception number.",
+   example:"Mỗi phép tính cập nhật N,Z,C,V\nif(a==b) → CMP → Z flag → BEQ\nT phải luôn = 1 trên Cortex-M",
+   freertos:"Hardware tự lưu xPSR vào exception stack frame khi interrupt. FreeRTOS restore xPSR khi resume task.",
+   color:"#cc88ff",special:"xpsr",
+   bf:[
+     {name:"N",hi:31,lo:31,color:"#ff4466",
+      desc:"Negative Flag (APSR bit 31) — kết quả phép tính là số âm.\n\nSet N=1 khi bit 31 của kết quả = 1 (số âm trong two's complement).\n\nCập nhật bởi: ADD, SUB, MOV, CMP, TST, AND, ORR, EOR... (lệnh có hậu tố S hoặc lệnh compare)\n\nDùng cho lệnh nhảy điều kiện:\n• BMI (Branch if Minus) → N=1\n• BPL (Branch if Plus/zero) → N=0",
+      vals:[
+        {code:"0",m:"Kết quả dương hoặc zero"},
+        {code:"1",m:"Kết quả âm (bit 31 = 1)"},
+      ]
+     },
+     {name:"Z",hi:30,lo:30,color:"#00ff88",
+      desc:"Zero Flag (APSR bit 30) — kết quả phép tính bằng 0.\n\nSet Z=1 khi kết quả = 0x00000000.\n\nFlag được dùng nhiều nhất: mọi lệnh if(a==b) trong C đều compile thành CMP + BEQ/BNE, kiểm tra Z flag.\n\nDùng cho:\n• BEQ (Branch if Equal) → Z=1\n• BNE (Branch if Not Equal) → Z=0\n• CBZ/CBNZ (Compare and Branch) — so sánh và nhảy",
+      vals:[
+        {code:"0",m:"Kết quả khác 0"},
+        {code:"1",m:"Kết quả = 0 / hai toán hạng bằng nhau"},
+      ]
+     },
+     {name:"C",hi:29,lo:29,color:"#ffb700",
+      desc:"Carry Flag (APSR bit 29) — carry out từ phép cộng, hoặc borrow từ phép trừ.\n\nCách set C:\n• ADD: C=1 nếu kết quả > 0xFFFFFFFF (unsigned overflow)\n• SUB/CMP: C=1 nếu KHÔNG có borrow (≥ unsigned)\n• LSR/LSL: C = bit bị đẩy ra ngoài\n• ROR: C = bit cuối cùng rotate ra\n\nDùng cho:\n• BCS (Branch if Carry Set) / BCC (Branch if Carry Clear)\n• ADC (Add with Carry) — cộng 64-bit dùng 2 lệnh\n• SBC (Sub with Carry)",
+      vals:[
+        {code:"0",m:"Không có carry / có borrow"},
+        {code:"1",m:"Có carry out / không có borrow"},
+      ]
+     },
+     {name:"V",hi:28,lo:28,color:"#00aaff",
+      desc:"Overflow Flag (APSR bit 28) — tràn số có dấu (signed overflow).\n\nKhác C flag: V dành cho số có dấu, C cho không dấu.\n\nSet V=1 khi:\n• Cộng 2 số dương → kết quả âm (VD: 0x7FFFFFFF + 1 = 0x80000000)\n• Cộng 2 số âm → kết quả dương\n• Trừ tương tự\n\nDùng cho:\n• BVS (Branch if Overflow Set) / BVC (Clear)\n• BGT, BLE, BGE, BLT (signed compare branches)",
+      vals:[
+        {code:"0",m:"Không có signed overflow"},
+        {code:"1",m:"Signed overflow — kết quả sai trong số học có dấu"},
+      ]
+     },
+     {name:"Q",hi:27,lo:27,color:"#cc88ff",
+      desc:"Saturation Flag (APSR bit 27) — chỉ Cortex-M4 với DSP extension.\n\nDùng với lệnh saturating arithmetic: QADD, QSUB, SSAT, USAT...\n\nKhác overflow: thay vì wrap-around, kết quả bị kẹp (saturate) ở giá trị max/min:\n• QADD 0x7FFFFFFF + 1 = 0x7FFFFFFF (thay vì 0x80000000)\n\nQ flag là sticky bit: một khi set = 1, chỉ cleared bằng:\nMSR APSR, Rn  (ghi 0 vào bit 27)\n\nM0/M3 không có lệnh saturating → Q luôn = 0.",
+      vals:[
+        {code:"0",m:"Chưa có saturation (hoặc đã cleared)"},
+        {code:"1",m:"Đã xảy ra saturation — sticky, phải clear thủ công"},
+      ]
+     },
+     {name:"IT[26:25]",hi:26,lo:25,color:"#887744",
+      desc:"If-Then state bits — một phần của IT state (phần còn lại ở EPSR bit 15-10).\n\nDùng bởi lệnh IT (If-Then) trong Thumb-2 để thực thi có điều kiện mà không cần branch:\nIT EQ       ; If Equal\nMOVEQ R0,#1 ; thực thi nếu Z=1\nMOVNE R0,#0 ; thực thi nếu Z=0\n\nDebugger và disassembler dùng để decode đúng. Lập trình viên thường không tương tác trực tiếp với IT bits.",
+      vals:[
+        {code:"00",m:"Không trong IT block"},
+        {code:"nonzero",m:"Đang trong IT block, n lệnh còn lại"},
+      ]
+     },
+     {name:"T",hi:24,lo:24,color:"#00ff88",
+      desc:"Thumb Mode Bit (EPSR bit 24) — LUÔN = 1 trên Cortex-M.\n\nChỉ ra CPU đang decode Thumb (16/32-bit) hay ARM (32-bit) instructions.\n\nCortex-M KHÔNG hỗ trợ ARM mode. Nếu T=0:\n→ CPU cố decode lệnh ARM → INVSTATE HardFault ngay lập tức.\n\nKhi exception return, CPU đọc T bit từ xPSR được restore trên stack. Vì vậy FreeRTOS phải đảm bảo xPSR trong stack frame có T=1.",
+      vals:[
+        {code:"0",m:"ARM mode → INVSTATE HardFault!"},
+        {code:"1",m:"Thumb mode — bắt buộc, luôn = 1"},
+      ]
+     },
+     {name:"Reserved",hi:23,lo:9,color:"#1a1a2a",
+      desc:"Bits dự phòng (Reserved) — không có chức năng trên Cortex-M3/M4.\n\nLuôn đọc = 0. Ghi bị ignore. Không tương tác với các bits này.",
+      vals:[{code:"0",m:"Reserved — always read as 0"}]
+     },
+     {name:"Exception#",hi:8,lo:0,color:"#ffb700",
+      desc:"Exception Number (IPSR bit 8-0) — số hiệu exception CPU đang xử lý.\n\n= 0: Thread mode (không có exception, task code đang chạy)\n= 1: Reset Handler\n= 2: NMI\n= 3: HardFault\n= 4: MemManage\n= 5: BusFault\n= 6: UsageFault\n= 11: SVCall (FreeRTOS dùng 1 lần khi start scheduler)\n= 14: PendSV ← FreeRTOS context switch!\n= 15: SysTick ← FreeRTOS tick (1ms)!\n= 16+: External IRQs (UART, TIM, GPIO...)\n\nFreeRTOS đọc giá trị này để biết đang ở Thread mode hay Handler mode → chọn hàm API phù hợp.",
+      vals:[
+        {code:"0",m:"Thread mode — task code bình thường"},
+        {code:"11",m:"SVC — FreeRTOS start scheduler (1 lần)"},
+        {code:"14",m:"PendSV — FreeRTOS context switch"},
+        {code:"15",m:"SysTick — FreeRTOS 1ms tick"},
+        {code:"16+",m:"External IRQ (UART_IRQ=53, TIM2_IRQ=44...)"},
+      ]
+     },
+   ]
+  }
+];
+
+const GROUPS=[
+  {id:"general",label:"R0–R3 · Caller-saved"},
+  {id:"saved",  label:"R4–R11 · Callee-saved"},
+  {id:"scratch",label:"R12 · Scratch"},
+  {id:"special",label:"R13–R15 · Special"},
+  {id:"xpsr",  label:"xPSR · Status Register"},
+];
+
+let CID="R13", FIDX=0, simA=3, simB=4, simC=2;
+
+function buildLeft(){
+  let h='';
+  GROUPS.forEach(g=>{
+    h+=`<div class="grp-lbl">${g.label}</div><div style="display:flex;flex-direction:column;gap:3px">`;
+    R.filter(r=>r.group===g.id).forEach(r=>{
+      const a=CID===r.id;
+      h+=`<button class="reg-btn${a?' active':''}" style="border-color:${a?r.color+'88':'rgba(0,255,136,.15)'}" onclick="sel('${r.id}')">
+        <span class="rname" style="color:${a?r.color:'inherit'}">${r.label}</span>
+        <span class="rrole">${r.role.substring(0,24)}${r.role.length>24?'…':''}</span>
+      </button>`;
+    });
+    h+=`</div>`;
+  });
+  document.getElementById('left-panel').innerHTML=h;
+}
+
+function buildRight(){
+  const reg=R.find(r=>r.id===CID);
+  if(!reg){document.getElementById('right-panel').innerHTML='';return;}
+  const fi=FIDX<reg.bf.length?FIDX:0;
+  const sf=reg.bf[fi];
+  let h='';
+
+  // Title card + bit layout
+  h+=`<div class="card fadein" style="border-color:${reg.color}44">
+    <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px">
+      <div style="font-family:'Orbitron',monospace;font-size:26px;font-weight:900;color:${reg.color};text-shadow:0 0 20px ${reg.color}66">${reg.label}</div>
+      <div>
+        <div style="font-size:13px;color:#c8ffe8;margin-bottom:2px">${reg.role}</div>
+        <div style="font-size:10px;color:#5a8f75;letter-spacing:1px">32-BIT · ARM CORTEX-M</div>
+      </div>
+    </div>
+    <div class="slbl">// BIT LAYOUT — nhấn ô bit hoặc vùng tên để xem chi tiết</div>
+    <div class="bit-scale">`;
+  // Number scale
+  for(let i=0;i<32;i++){
+    const b=31-i;
+    h+=`<div class="bit-num">${(b%8===0||b===31)?b:''}</div>`;
+  }
+  h+=`</div>`;
+  // Build bit→field map
+  const bitMap={};
+  reg.bf.forEach((bf,idx)=>{for(let b=bf.lo;b<=bf.hi;b++) bitMap[b]=idx;});
+  // Individual 32 bit cells, colored by field
+  h+=`<div class="bit-scale" style="margin-bottom:4px">`;
+  for(let i=0;i<32;i++){
+    const b=31-i;
+    const idx=bitMap[b]??0;
+    const bf=reg.bf[idx];
+    const sel=idx===fi;
+    const isEdge_right=(b===bf.hi); // leftmost cell of the field (rendered first)
+    const isEdge_left=(b===bf.lo);  // rightmost cell
+    h+=`<div onclick="selF(${idx})"
+      title="bit ${b} — ${bf.name}"
+      style="
+        min-width:20px;height:28px;flex-shrink:0;cursor:pointer;
+        background:${bf.color}${sel?'30':'16'};
+        border-top:1px solid ${bf.color}${sel?'cc':'55'};
+        border-bottom:1px solid ${bf.color}${sel?'cc':'55'};
+        border-left:${isEdge_right?`2px solid ${bf.color}${sel?'ff':'88'}`:'1px solid transparent'};
+        border-right:${isEdge_left?`2px solid ${bf.color}${sel?'ff':'88'}`:'1px solid transparent'};
+        display:flex;align-items:center;justify-content:center;
+        font-size:8px;color:${bf.color}${sel?'dd':'77'};
+        transition:filter .1s,transform .1s;
+        ${sel?`box-shadow:0 0 6px ${bf.color}44;transform:translateY(-1px);`:''}
+      "
+      onmouseover="this.style.filter='brightness(1.6)';this.style.transform='translateY(-2px)'"
+      onmouseout="this.style.filter='';this.style.transform='${sel?'translateY(-1px)':''}'"
+    >${b===bf.hi&&(bf.hi-bf.lo)>=3?'<span style=font-size:7px>'+b+'</span>':b===bf.lo&&(bf.hi-bf.lo)>=3?'<span style=font-size:7px>'+b+'</span>':''}</div>`;
+  }
+  h+=`</div>`;
+  // Field name blocks as legend below
+  h+=`<div class="bf-row" style="margin-top:2px">`;
+  reg.bf.forEach((bf,idx)=>{
+    const w=bf.hi-bf.lo+1;
+    const bw=w*20+(w-1)*2;
+    const sel=idx===fi;
+    h+=`<div class="bf-block${sel?' selected':''}"
+      style="width:${bw}px;background:${bf.color}${sel?'22':'0e'};border-color:${bf.color}${sel?'99':'33'};color:${bf.color}${sel?'ff':'99'};font-size:8px;height:20px;"
+      onclick="selF(${idx})">
+      ${w>=4?`<span style="overflow:hidden;max-width:${bw-6}px;display:inline-block;white-space:nowrap">${bf.name}</span>`:''}
+    </div>`;
+  });
+  h+=`</div>`;
+
+  // Selected field info
+  h+=`<div class="bf-info" style="border-color:${sf.color}55;background:#080e0c">
+    <div class="bf-info-name" style="color:${sf.color}">${sf.name}</div>
+    <div class="bf-info-bits">Bit ${sf.hi}${sf.hi!==sf.lo?'–'+sf.lo:''} &nbsp;·&nbsp; ${sf.hi-sf.lo+1} bit${sf.hi!==sf.lo?'s':''}</div>
+    <div class="bf-info-desc">${sf.desc.replace(/\n/g,'<br>')}</div>`;
+  if(sf.vals&&sf.vals.length){
+    h+=`<div class="bf-info-vals">`;
+    sf.vals.forEach(v=>{
+      h+=`<div class="bf-val-row" style="border-color:${sf.color}66;background:${sf.color}0d">
+        <span class="bf-val-code" style="color:${sf.color}">${v.code}</span>
+        <span class="bf-val-meaning">${v.m}</span>
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+  h+=`</div></div>`;
+
+  // Two col
+  h+=`<div class="two-col">
+    <div class="card fadein">
+      <div class="slbl">// MÔ TẢ</div>
+      <div class="detail-text">${reg.detail}</div>
+    </div>
+    <div class="card fadein">
+      <div class="slbl">// VÍ DỤ</div>
+      <div class="example-text">${reg.example}</div>
+    </div>
+  </div>`;
+
+  // FreeRTOS
+  h+=`<div class="card ft-card fadein">
+    <div class="slbl ft-lbl">// FREERTOS CONNECTION</div>
+    <div class="detail-text">${reg.freertos}</div>
+  </div>`;
+
+  // SP special
+  if(reg.special==='sp'){
+    h+=`<div class="card fadein" style="border-color:#ff446633;margin-bottom:12px">
+      <div class="slbl" style="color:#ff4466">// HAI STACK POINTER VẬT LÝ</div>
+      <div class="sp-grid">`;
+    [{name:"MSP",full:"Main Stack Pointer",color:"#ffb700",items:["Boot / startup code","Exception handlers","FreeRTOS kernel (PendSV)"]},
+     {name:"PSP",full:"Process Stack Pointer",color:"#00ff88",items:["Task A stack","Task B stack","Task C stack ← FreeRTOS switch PSP!"]}
+    ].forEach(sp=>{
+      h+=`<div class="sp-box" style="border:1px solid ${sp.color}33">
+        <div class="sp-name" style="color:${sp.color}">${sp.name}</div>
+        <div class="sp-full">${sp.full}</div>`;
+      sp.items.forEach(it=>h+=`<div class="sp-item" style="border-left:2px solid ${sp.color}55">${it}</div>`);
+      h+=`</div>`;
+    });
+    h+=`</div></div>`;
+  }
+
+  // LR special
+  if(reg.special==='lr'){
+    h+=`<div class="card fadein" style="border-color:#ff446633;margin-bottom:12px">
+      <div class="slbl" style="color:#ff4466">// EXC_RETURN VALUES</div>`;
+    [{val:"0xFFFFFFF1",desc:"Return to Handler mode, MSP",ft:false},
+     {val:"0xFFFFFFF9",desc:"Return to Thread mode, MSP",ft:false},
+     {val:"0xFFFFFFFD",desc:"Return to Thread mode, PSP ← FreeRTOS tasks",ft:true},
+    ].forEach(e=>{
+      h+=`<div class="exc-row" style="background:${e.ft?'#0a1a0a':'#0a100e'};border:1px solid ${e.ft?'#00ff8833':'rgba(0,255,136,.08)'}">
+        <span class="exc-val">${e.val}</span><span class="exc-desc">${e.desc}</span>
+        ${e.ft?'<span class="exc-tag">FreeRTOS</span>':''}
+      </div>`;
+    });
+    h+=`</div>`;
+  }
+
+  // xPSR simulator
+  if(reg.special==='xpsr'){
+    const res=(simA+simB)*simC;
+    const N=res<0?1:0, Z=res===0?1:0, C=(simA+simB)>0xFFFFFFFF?1:0;
+    const hex=(res>>>0).toString(16).toUpperCase().padStart(8,'0');
+    h+=`<div class="card fadein" style="border-color:#cc88ff33;margin-bottom:12px">
+      <div class="slbl" style="color:#cc88ff">// FLAG SIMULATOR — (a + b) × c</div>
+      <div class="sim-inputs">`;
+    ['a','b','c'].forEach((k,i)=>{
+      h+=`<div><div class="sim-lbl">${k} =</div>
+        <input class="sim-input" type="number" value="${[simA,simB,simC][i]}" onchange="updSim('${k}',this.value)">
+      </div>`;
+    });
+    h+=`</div><div class="sim-result">R0 = (${simA} + ${simB}) × ${simC} = <span class="sim-big">${res}</span><span class="sim-hex">(0x${hex})</span></div>
+      <div class="flag-boxes">`;
+    [{flag:"N",val:N,desc:"Negative",color:"#ff4466"},
+     {flag:"Z",val:Z,desc:"Zero",color:"#00ff88"},
+     {flag:"C",val:C,desc:"Carry",color:"#ffb700"},
+     {flag:"V",val:0,desc:"Overflow",color:"#00aaff"},
+    ].forEach(f=>{
+      h+=`<div class="flag-box${f.val?' on':''}" style="--fc:${f.color};${f.val?`background:${f.color}22;border-color:${f.color}`:''}">
+        <div class="fbn">${f.flag}</div><div class="fbv">${f.val}</div><div class="fbd">${f.desc}</div>
+      </div>`;
+    });
+    h+=`</div></div>`;
+  }
+
+  // Context switch — always
+  h+=`<div class="card ft-card fadein">
+    <div class="slbl ft-lbl">// FREERTOS CONTEXT SWITCH — REGISTERS ĐƯỢC LƯU NHƯ THẾ NÀO</div>
+    <div class="ctx-grid">`;
+  [{label:"AUTO-PUSH\n(CPU hardware)",regs:["xPSR","PC","LR","R12","R3","R2","R1","R0"],color:"#ff4466"},
+   {label:"MANUAL-PUSH\n(FreeRTOS PendSV)",regs:["R11","R10","R9","R8","R7","R6","R5","R4"],color:"#00aaff"},
+  ].forEach(g=>{
+    h+=`<div class="ctx-grp"><div class="ctx-title" style="color:${g.color}">${g.label}</div>`;
+    g.regs.forEach((r,i)=>h+=`<div class="ctx-reg" style="border:1px solid ${g.color}33;color:${g.color}"><span>${r}</span><span class="ctx-offset">SP-${(g.regs.length-i)*4}</span></div>`);
+    h+=`</div>`;
+  });
+  h+=`<div class="ctx-note">← Lưu PSP Task A<br>vào TCB<br><br>Nạp PSP Task B<br>từ TCB →<br><br><span style="color:#00ff88">Task B tiếp tục!</span></div>
+    </div></div>`;
+
+  document.getElementById('right-panel').innerHTML=h;
+}
+
+function sel(id){CID=id;FIDX=0;buildLeft();buildRight();}
+function selF(i){FIDX=i;buildRight();}
+function updSim(k,v){const n=parseInt(v)||0;if(k==='a')simA=n;if(k==='b')simB=n;if(k==='c')simC=n;buildRight();}
+
+buildLeft();buildRight();
+</script>
+</body>
+</html>

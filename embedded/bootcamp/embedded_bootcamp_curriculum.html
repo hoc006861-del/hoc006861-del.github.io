@@ -1,0 +1,1274 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Embedded Systems Bootcamp 2026 — Lộ Trình 12 Tuần</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Barlow:wght@300;400;600;700;900&family=Barlow+Condensed:wght@700;900&display=swap');
+
+  :root {
+    --bg: #0a0c0f;
+    --bg2: #10141a;
+    --bg3: #161c24;
+    --border: #1e2a38;
+    --accent: #00e5ff;
+    --accent2: #ff6b35;
+    --accent3: #39ff14;
+    --accent4: #bf5fff;
+    --text: #c8d8e8;
+    --text-dim: #556070;
+    --text-bright: #eaf4ff;
+    --m1: #00e5ff;
+    --m2: #ff6b35;
+    --m3: #39ff14;
+    --m4: #bf5fff;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: 'Barlow', sans-serif;
+    font-weight: 300;
+    line-height: 1.7;
+    overflow-x: hidden;
+  }
+
+  /* ─── SCANLINE OVERLAY ─── */
+  body::before {
+    content: '';
+    position: fixed; inset: 0;
+    background: repeating-linear-gradient(
+      to bottom,
+      transparent 0px, transparent 3px,
+      rgba(0,0,0,0.08) 3px, rgba(0,0,0,0.08) 4px
+    );
+    pointer-events: none; z-index: 9999;
+  }
+
+  /* ─── HERO ─── */
+  .hero {
+    position: relative;
+    padding: 80px 60px 60px;
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+  .hero::before {
+    content: 'EMBEDDED';
+    position: absolute;
+    right: -20px; top: 10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 220px; font-weight: 900;
+    color: rgba(0,229,255,0.03);
+    letter-spacing: -8px;
+    user-select: none; pointer-events: none;
+    white-space: nowrap;
+  }
+  .hero-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--accent);
+    letter-spacing: 4px;
+    text-transform: uppercase;
+    margin-bottom: 20px;
+    display: flex; align-items: center; gap: 12px;
+  }
+  .hero-tag::before {
+    content: '';
+    width: 40px; height: 1px;
+    background: var(--accent);
+  }
+  .hero h1 {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 72px; font-weight: 900;
+    line-height: 0.9;
+    color: var(--text-bright);
+    text-transform: uppercase;
+    letter-spacing: -2px;
+    margin-bottom: 8px;
+  }
+  .hero h1 span { color: var(--accent); }
+  .hero-sub {
+    font-size: 15px; font-weight: 400;
+    color: var(--text-dim);
+    max-width: 600px;
+    margin-top: 20px;
+    line-height: 1.8;
+  }
+  .hero-meta {
+    display: flex; gap: 40px;
+    margin-top: 40px;
+    flex-wrap: wrap;
+  }
+  .meta-item {
+    display: flex; flex-direction: column; gap: 4px;
+  }
+  .meta-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--text-dim);
+    letter-spacing: 3px; text-transform: uppercase;
+  }
+  .meta-value {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 28px; font-weight: 700;
+    color: var(--text-bright);
+  }
+  .meta-value span { color: var(--accent); font-size: 14px; }
+
+  /* ─── OVERVIEW GRID ─── */
+  .section { padding: 60px; border-bottom: 1px solid var(--border); }
+  .section-header {
+    display: flex; align-items: baseline; gap: 16px;
+    margin-bottom: 40px;
+  }
+  .section-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    letter-spacing: 2px;
+  }
+  .section-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 32px; font-weight: 700;
+    text-transform: uppercase; color: var(--text-bright);
+    letter-spacing: 1px;
+  }
+
+  .overview-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 2px;
+  }
+  .overview-card {
+    background: var(--bg2);
+    padding: 32px 28px;
+    position: relative; overflow: hidden;
+    transition: background 0.2s;
+    cursor: default;
+  }
+  .overview-card:hover { background: var(--bg3); }
+  .overview-card::before {
+    content: '';
+    position: absolute; top: 0; left: 0; right: 0;
+    height: 3px;
+  }
+  .m1::before { background: var(--m1); }
+  .m2::before { background: var(--m2); }
+  .m3::before { background: var(--m3); }
+  .m4::before { background: var(--m4); }
+
+  .card-module {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 3px;
+    margin-bottom: 12px;
+  }
+  .m1 .card-module { color: var(--m1); }
+  .m2 .card-module { color: var(--m2); }
+  .m3 .card-module { color: var(--m3); }
+  .m4 .card-module { color: var(--m4); }
+
+  .card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 22px; font-weight: 700;
+    color: var(--text-bright);
+    text-transform: uppercase;
+    line-height: 1.1; margin-bottom: 14px;
+  }
+  .card-desc {
+    font-size: 13px; color: var(--text-dim);
+    line-height: 1.7;
+  }
+  .card-weeks {
+    margin-top: 20px;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+  .card-weeks strong { color: var(--text); }
+
+  /* ─── MODULE SECTION ─── */
+  .module-section {
+    padding: 60px;
+    border-bottom: 1px solid var(--border);
+    position: relative;
+  }
+  .module-header {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 40px;
+    align-items: start;
+    margin-bottom: 48px;
+    padding-bottom: 40px;
+    border-bottom: 1px solid var(--border);
+  }
+  .module-badge {
+    width: 80px; height: 80px;
+    display: flex; flex-direction: column;
+    align-items: center; justify-content: center;
+    border: 1px solid;
+    position: relative;
+  }
+  .module-badge::after {
+    content: '';
+    position: absolute;
+    inset: 3px;
+    border: 1px solid;
+    opacity: 0.3;
+  }
+  .m1-badge { border-color: var(--m1); color: var(--m1); }
+  .m1-badge::after { border-color: var(--m1); }
+  .m2-badge { border-color: var(--m2); color: var(--m2); }
+  .m2-badge::after { border-color: var(--m2); }
+  .m3-badge { border-color: var(--m3); color: var(--m3); }
+  .m3-badge::after { border-color: var(--m3); }
+  .m4-badge { border-color: var(--m4); color: var(--m4); }
+  .m4-badge::after { border-color: var(--m4); }
+
+  .badge-num {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 36px; font-weight: 900; line-height: 1;
+  }
+  .badge-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 8px; letter-spacing: 2px;
+  }
+  .module-title-block {}
+  .module-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 3px;
+    color: var(--text-dim); margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .module-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 46px; font-weight: 900;
+    text-transform: uppercase; line-height: 0.95;
+    color: var(--text-bright); letter-spacing: -1px;
+  }
+  .module-objective {
+    margin-top: 16px;
+    font-size: 14px; color: var(--text-dim);
+    max-width: 700px; line-height: 1.8;
+  }
+  .module-stats {
+    display: flex; gap: 32px; margin-top: 20px;
+    flex-wrap: wrap;
+  }
+  .stat {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    display: flex; align-items: center; gap: 8px;
+  }
+  .stat::before { content: '◆'; font-size: 7px; }
+
+  /* ─── WEEKS ─── */
+  .weeks-grid {
+    display: flex; flex-direction: column; gap: 2px;
+  }
+  .week {
+    background: var(--bg2);
+    display: grid;
+    grid-template-columns: 120px 1fr;
+    overflow: hidden;
+  }
+  .week-label {
+    padding: 24px 20px;
+    display: flex; flex-direction: column;
+    justify-content: flex-start;
+    border-right: 1px solid var(--border);
+  }
+  .week-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 2px;
+    color: var(--text-dim);
+    display: block; margin-bottom: 4px;
+  }
+  .week-name {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 18px; font-weight: 700;
+    text-transform: uppercase;
+    color: var(--text-bright);
+    line-height: 1.1;
+  }
+  .week-body { padding: 24px 28px; }
+  .week-topic-title {
+    font-weight: 600; font-size: 14px;
+    color: var(--text-bright);
+    margin-bottom: 12px;
+  }
+  .topic-list {
+    list-style: none;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 6px 24px;
+  }
+  .topic-list li {
+    font-size: 13px; color: var(--text);
+    display: flex; gap: 10px; align-items: baseline;
+  }
+  .topic-list li::before {
+    content: '→';
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; flex-shrink: 0;
+  }
+  .m1 .topic-list li::before { color: var(--m1); }
+  .m2 .topic-list li::before { color: var(--m2); }
+  .m3 .topic-list li::before { color: var(--m3); }
+  .m4 .topic-list li::before { color: var(--m4); }
+
+  /* ─── PROJECT BOX ─── */
+  .project-box {
+    margin-top: 32px;
+    border: 1px solid var(--border);
+    background: var(--bg);
+  }
+  .project-header {
+    padding: 14px 24px;
+    border-bottom: 1px solid var(--border);
+    display: flex; align-items: center; gap: 12px;
+  }
+  .project-icon {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; letter-spacing: 2px;
+    padding: 4px 10px;
+    border: 1px solid;
+  }
+  .m1-s .project-icon { color: var(--m1); border-color: var(--m1); }
+  .m2-s .project-icon { color: var(--m2); border-color: var(--m2); }
+  .m3-s .project-icon { color: var(--m3); border-color: var(--m3); }
+  .m4-s .project-icon { color: var(--m4); border-color: var(--m4); }
+  .project-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 16px; font-weight: 700;
+    text-transform: uppercase; color: var(--text-bright);
+  }
+  .project-body { padding: 20px 24px; }
+  .project-list {
+    list-style: none; display: flex; flex-direction: column; gap: 10px;
+  }
+  .project-list li {
+    font-size: 13px; color: var(--text);
+    display: flex; gap: 12px; align-items: flex-start;
+    padding-bottom: 10px;
+    border-bottom: 1px solid var(--border);
+  }
+  .project-list li:last-child { border-bottom: none; padding-bottom: 0; }
+  .proj-num {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--text-dim);
+    flex-shrink: 0; padding-top: 2px;
+    min-width: 24px;
+  }
+  .proj-content { flex: 1; }
+  .proj-name { font-weight: 600; color: var(--text-bright); font-size: 13px; }
+  .proj-desc { color: var(--text-dim); font-size: 12px; margin-top: 3px; line-height: 1.5; }
+
+  /* ─── TOOLS & RESOURCES ─── */
+  .tools-row {
+    display: flex; gap: 2px; margin-top: 32px;
+  }
+  .tool-group {
+    flex: 1; background: var(--bg2); padding: 20px 22px;
+  }
+  .tool-group-label {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 3px; color: var(--text-dim);
+    text-transform: uppercase; margin-bottom: 12px;
+  }
+  .tool-tags { display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 4px 10px;
+    background: var(--bg3);
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
+
+  /* ─── SCHEDULE ─── */
+  .schedule-table {
+    width: 100%; border-collapse: collapse;
+    font-size: 13px;
+  }
+  .schedule-table th {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 3px;
+    color: var(--text-dim); text-transform: uppercase;
+    text-align: left; padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg2);
+  }
+  .schedule-table td {
+    padding: 12px 16px;
+    border-bottom: 1px solid var(--border);
+    vertical-align: top;
+  }
+  .schedule-table tr:last-child td { border-bottom: none; }
+  .schedule-table tr:hover td { background: var(--bg2); }
+  .wk-cell {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text-dim);
+    white-space: nowrap;
+  }
+  .mod-pill {
+    display: inline-block;
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; letter-spacing: 1px;
+    padding: 2px 8px; border: 1px solid;
+    margin-bottom: 4px;
+  }
+  .pill-1 { color: var(--m1); border-color: var(--m1); }
+  .pill-2 { color: var(--m2); border-color: var(--m2); }
+  .pill-3 { color: var(--m3); border-color: var(--m3); }
+  .pill-4 { color: var(--m4); border-color: var(--m4); }
+  .topic-cell { color: var(--text-bright); font-weight: 400; }
+  .milestone-cell { color: var(--text-dim); font-size: 12px; }
+
+  /* ─── FINAL PROJECT ─── */
+  .final-grid {
+    display: grid; grid-template-columns: 1fr 1fr; gap: 2px;
+  }
+  .final-card {
+    background: var(--bg2); padding: 32px 28px;
+    position: relative; overflow: hidden;
+  }
+  .final-card::before {
+    content: attr(data-num);
+    position: absolute; right: 16px; bottom: -10px;
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 100px; font-weight: 900;
+    color: rgba(255,255,255,0.03);
+    user-select: none;
+  }
+  .final-card-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 9px; letter-spacing: 3px; color: var(--accent);
+    text-transform: uppercase; margin-bottom: 10px;
+  }
+  .final-card-title {
+    font-family: 'Barlow Condensed', sans-serif;
+    font-size: 24px; font-weight: 700;
+    text-transform: uppercase; color: var(--text-bright);
+    margin-bottom: 12px;
+  }
+  .final-card-desc { font-size: 13px; color: var(--text-dim); line-height: 1.7; }
+  .final-card-stack {
+    margin-top: 16px; display: flex; flex-wrap: wrap; gap: 6px;
+  }
+  .stack-tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 10px; color: var(--accent);
+    padding: 3px 8px; background: rgba(0,229,255,0.06);
+    border: 1px solid rgba(0,229,255,0.2);
+  }
+
+  /* ─── FOOTER ─── */
+  .footer {
+    padding: 40px 60px;
+    display: flex; justify-content: space-between; align-items: center;
+    flex-wrap: wrap; gap: 20px;
+  }
+  .footer-brand {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px; color: var(--text-dim); letter-spacing: 3px;
+  }
+  .footer-brand strong { color: var(--accent); }
+  .progress-bar {
+    display: flex; gap: 2px;
+  }
+  .pb-seg {
+    height: 6px; width: 60px; background: var(--border);
+  }
+  .pb-seg.s1 { background: var(--m1); }
+  .pb-seg.s2 { background: var(--m2); }
+  .pb-seg.s3 { background: var(--m3); }
+  .pb-seg.s4 { background: var(--m4); }
+
+  /* divider */
+  .divider {
+    height: 1px; background: var(--border);
+    margin: 0 60px;
+    position: relative;
+  }
+  .divider::before {
+    content: '';
+    position: absolute; left: 0; top: 0;
+    width: 120px; height: 1px; background: var(--accent);
+  }
+
+  @media (max-width: 900px) {
+    .overview-grid { grid-template-columns: 1fr 1fr; }
+    .hero h1 { font-size: 48px; }
+    .hero { padding: 50px 30px 40px; }
+    .section, .module-section { padding: 40px 30px; }
+    .week { grid-template-columns: 80px 1fr; }
+    .topic-list { grid-template-columns: 1fr; }
+    .final-grid { grid-template-columns: 1fr; }
+    .tools-row { flex-direction: column; }
+  }
+</style>
+</head>
+<body>
+
+<!-- ═══════════════════════════════════════ HERO ══════════════════════════════════════ -->
+<div class="hero">
+  <div class="hero-tag">CURRICULUM v1.0 &nbsp;·&nbsp; 2026</div>
+  <h1>Embedded Systems<br><span>Bootcamp</span></h1>
+  <p class="hero-sub">
+    Chương trình đào tạo kỹ sư Embedded Systems chuyên sâu — từ nền tảng thuật toán đến
+    tự xây dựng một hệ điều hành thời gian thực hoàn chỉnh. 12 tuần thực chiến, không có
+    bài học thừa.
+  </p>
+  <div class="hero-meta">
+    <div class="meta-item">
+      <span class="meta-label">Thời gian</span>
+      <span class="meta-value">12 <span>TUẦN</span></span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Modules</span>
+      <span class="meta-value">04 <span>MODULE</span></span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Dự án</span>
+      <span class="meta-value">12+ <span>PROJECT</span></span>
+    </div>
+    <div class="meta-item">
+      <span class="meta-label">Cấp độ</span>
+      <span class="meta-value">HARD<span>CORE</span></span>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ OVERVIEW ════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">00 /</span>
+    <span class="section-title">Tổng quan chương trình</span>
+  </div>
+  <div class="overview-grid">
+    <div class="overview-card m1">
+      <div class="card-module">MODULE 01</div>
+      <div class="card-title">Algorithm &amp; Data Structure</div>
+      <div class="card-desc">Nền tảng tư duy kỹ sư: cấu trúc dữ liệu, giải thuật, độ phức tạp — được triển khai trực tiếp bằng C cho môi trường nhúng.</div>
+      <div class="card-weeks"><strong>Tuần 1 – 3</strong> · 3 weeks · C Language</div>
+    </div>
+    <div class="overview-card m2">
+      <div class="card-module">MODULE 02</div>
+      <div class="card-title">Event-Driven Programming</div>
+      <div class="card-desc">Xây dựng kiến trúc lập trình hướng sự kiện: state machine, event queue, message passing — trụ cột của mọi hệ thống nhúng lớn.</div>
+      <div class="card-weeks"><strong>Tuần 4 – 6</strong> · 3 weeks · C/C++</div>
+    </div>
+    <div class="overview-card m3">
+      <div class="card-module">MODULE 03</div>
+      <div class="card-title">Embedded Linux Basics</div>
+      <div class="card-desc">Làm chủ Linux từ kernel, device tree, cross-compilation đến viết Linux device driver hoàn chỉnh trên phần cứng thực.</div>
+      <div class="card-weeks"><strong>Tuần 7 – 9</strong> · 3 weeks · Linux/C</div>
+    </div>
+    <div class="overview-card m4">
+      <div class="card-module">MODULE 04</div>
+      <div class="card-title">Build Your Own RTOS</div>
+      <div class="card-desc">Thử thách đỉnh cao: tự tay code scheduler, context switching, IPC, memory management — hoàn thiện AK-mOS từ zero.</div>
+      <div class="card-weeks"><strong>Tuần 10 – 12</strong> · 3 weeks · ARM/C</div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ MODULE 1 ════════════════════════════════ -->
+<div class="module-section">
+  <div class="module-header">
+    <div class="module-badge m1-badge">
+      <span class="badge-num">01</span>
+      <span class="badge-label">MODULE</span>
+    </div>
+    <div class="module-title-block">
+      <div class="module-tag">Tuần 1 — Tuần 3 &nbsp;·&nbsp; Foundation Layer</div>
+      <div class="module-name" style="color:var(--m1)">Algorithm<br>&amp; Data Structure</div>
+      <div class="module-objective">
+        Không có cấu trúc dữ liệu tốt, không có hệ thống nhúng tốt. Module này xây dựng
+        tư duy kỹ sư từ gốc rễ: viết từng cấu trúc dữ liệu bằng C thuần, phân tích độ
+        phức tạp, và áp dụng trực tiếp vào bài toán nhúng thực tế.
+      </div>
+      <div class="module-stats">
+        <span class="stat" style="color:var(--m1)">3 Tuần học</span>
+        <span class="stat" style="color:var(--text-dim)">C Language</span>
+        <span class="stat" style="color:var(--text-dim)">3 Mini Projects</span>
+        <span class="stat" style="color:var(--text-dim)">1 Capstone</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="weeks-grid">
+    <div class="week">
+      <div class="week-label m1">
+        <span class="week-num">WEEK 01</span>
+        <span class="week-name">Linear Data Structures</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m1">
+          <li>Array &amp; Dynamic Array — quản lý bộ nhớ thủ công</li>
+          <li>Singly / Doubly Linked List từ scratch</li>
+          <li>Stack: ứng dụng call stack, expression parsing</li>
+          <li>Queue: circular queue, deque cho embedded buffer</li>
+          <li>Phân tích Big-O: Time &amp; Space complexity</li>
+          <li>Memory layout trong C: stack, heap, BSS, data segment</li>
+          <li>Pointer arithmetic nâng cao, void pointer, function pointer</li>
+          <li>Macro và bitwise tricks trong embedded C</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m1">
+        <span class="week-num">WEEK 02</span>
+        <span class="week-name">Trees &amp; Graphs</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m1">
+          <li>Binary Tree — traversal: inorder, preorder, postorder</li>
+          <li>Binary Search Tree (BST) — insert, delete, search</li>
+          <li>AVL Tree &amp; tự cân bằng — rotation logic</li>
+          <li>Hash Table: separate chaining &amp; open addressing</li>
+          <li>Graph: adjacency matrix vs adjacency list</li>
+          <li>BFS &amp; DFS — ứng dụng trong pathfinding nhúng</li>
+          <li>Priority Queue &amp; Heap — min-heap cho task scheduling</li>
+          <li>Trie — autocomplete và symbol table</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m1">
+        <span class="week-num">WEEK 03</span>
+        <span class="week-name">Algorithms &amp; Problem Solving</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m1">
+          <li>Sorting: Merge Sort, Quick Sort, Counting Sort</li>
+          <li>Searching: Binary Search biến thể</li>
+          <li>Dynamic Programming — memoization vs tabulation</li>
+          <li>Greedy algorithms — Dijkstra, Prim's MST</li>
+          <li>Divide &amp; Conquer pattern</li>
+          <li>Bit Manipulation: masking, shifting, flags trong embedded</li>
+          <li>Recursion &amp; Tail Recursion optimization</li>
+          <li>Algorithm design cho resource-constrained systems</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-box">
+    <div class="project-header m1-s">
+      <span class="project-icon">PROJECT</span>
+      <span class="project-title">Module 1 — Capstone Projects</span>
+    </div>
+    <div class="project-body">
+      <ul class="project-list">
+        <li>
+          <span class="proj-num">P1.1</span>
+          <div class="proj-content">
+            <div class="proj-name">Embedded Data Structure Library</div>
+            <div class="proj-desc">Viết một thư viện C hoàn chỉnh gồm: static-allocated linked list, ring buffer, min-heap — hoạt động không có dynamic memory (malloc-free), sử dụng được trên MCU không có OS.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P1.2</span>
+          <div class="proj-content">
+            <div class="proj-name">Task Dispatcher với Priority Queue</div>
+            <div class="proj-desc">Xây dựng một task scheduler đơn giản dựa trên min-heap: add task với priority, pop task có priority cao nhất, benchmark thời gian thực thi.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P1.3</span>
+          <div class="proj-content">
+            <div class="proj-name">Sensor Data Processing Pipeline</div>
+            <div class="proj-desc">Cài đặt pipeline xử lý dữ liệu cảm biến: sliding window buffer, moving average với circular queue, peak detection bằng BST. Benchmark memory footprint.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tools-row">
+    <div class="tool-group">
+      <div class="tool-group-label">Ngôn ngữ &amp; Công cụ</div>
+      <div class="tool-tags">
+        <span class="tag">C11</span><span class="tag">GCC</span>
+        <span class="tag">GDB</span><span class="tag">Valgrind</span>
+        <span class="tag">Unity Test</span><span class="tag">CMake</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Tài liệu tham khảo</div>
+      <div class="tool-tags">
+        <span class="tag">CLRS 4th Ed</span>
+        <span class="tag">Effective C — N.Deaton</span>
+        <span class="tag">LeetCode (Easy–Medium)</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Đánh giá</div>
+      <div class="tool-tags">
+        <span class="tag">Code Review</span>
+        <span class="tag">Unit Test Coverage</span>
+        <span class="tag">Memory Analysis</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ MODULE 2 ════════════════════════════════ -->
+<div class="module-section">
+  <div class="module-header">
+    <div class="module-badge m2-badge">
+      <span class="badge-num">02</span>
+      <span class="badge-label">MODULE</span>
+    </div>
+    <div class="module-title-block">
+      <div class="module-tag">Tuần 4 — Tuần 6 &nbsp;·&nbsp; Architecture Layer</div>
+      <div class="module-name" style="color:var(--m2)">Event-Driven<br>Programming</div>
+      <div class="module-objective">
+        Phương pháp lập trình phản ứng sự kiện là DNA của các hệ thống nhúng phức tạp.
+        Từ finite state machine đến active object pattern, module này dạy bạn thiết kế
+        firmware có thể scale và maintain được.
+      </div>
+      <div class="module-stats">
+        <span class="stat" style="color:var(--m2)">3 Tuần học</span>
+        <span class="stat" style="color:var(--text-dim)">C/C++</span>
+        <span class="stat" style="color:var(--text-dim)">3 Mini Projects</span>
+        <span class="stat" style="color:var(--text-dim)">1 Capstone</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="weeks-grid">
+    <div class="week">
+      <div class="week-label m2">
+        <span class="week-num">WEEK 04</span>
+        <span class="week-name">Finite State Machines</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m2">
+          <li>FSM concept: states, events, transitions, actions</li>
+          <li>FSM cài đặt bằng switch-case — anti-pattern phân tích</li>
+          <li>Table-driven FSM — data-driven approach</li>
+          <li>Hierarchical State Machine (HSM) — superstate, history</li>
+          <li>UML State Diagram — vẽ và đọc state chart</li>
+          <li>Debounce, button FSM thực chiến trên MCU</li>
+          <li>FSM cho giao thức truyền thông (UART frame parsing)</li>
+          <li>Guard conditions và extended states</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m2">
+        <span class="week-num">WEEK 05</span>
+        <span class="week-name">Event Queue &amp; Message Passing</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m2">
+          <li>Event-driven vs polling — khi nào dùng cái gì</li>
+          <li>Event Queue: FIFO, priority queue cho events</li>
+          <li>Event descriptor: type, data payload, source, timestamp</li>
+          <li>Publish-Subscribe pattern từ zero</li>
+          <li>Observer pattern trong C — callback registration</li>
+          <li>ISR-safe event posting — critical section management</li>
+          <li>Message pool — zero-copy event passing</li>
+          <li>Deferred interrupt processing pattern</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m2">
+        <span class="week-num">WEEK 06</span>
+        <span class="week-name">Active Objects &amp; Frameworks</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m2">
+          <li>Active Object pattern — thread + event queue + FSM</li>
+          <li>Asynchronous messaging giữa các active objects</li>
+          <li>Time events: one-shot timer, periodic timer</li>
+          <li>QP/C framework concepts — QActive, QMsm</li>
+          <li>Run-to-completion (RTC) semantics</li>
+          <li>Event-driven vs interrupt-driven architecture</li>
+          <li>Tracing &amp; debugging event-driven systems</li>
+          <li>Design pattern: Command, Chain of Responsibility</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-box">
+    <div class="project-header m2-s">
+      <span class="project-icon">PROJECT</span>
+      <span class="project-title">Module 2 — Capstone Projects</span>
+    </div>
+    <div class="project-body">
+      <ul class="project-list">
+        <li>
+          <span class="proj-num">P2.1</span>
+          <div class="proj-content">
+            <div class="proj-name">Vending Machine Simulator</div>
+            <div class="proj-desc">Mô phỏng máy bán hàng tự động bằng HSM: idle → coin inserted → product selected → dispensing → change return. Xử lý error states, timeout events, refund logic.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P2.2</span>
+          <div class="proj-content">
+            <div class="proj-name">Custom Event Framework (mini-EDF)</div>
+            <div class="proj-desc">Tự xây dựng mini event-driven framework: event pool, subscriber registry, dispatcher loop. Hỗ trợ priority events và wildcard subscription. Benchmark latency.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P2.3</span>
+          <div class="proj-content">
+            <div class="proj-name">Multi-Component Embedded Application</div>
+            <div class="proj-desc">Ứng dụng nhúng gồm 3 active objects giao tiếp qua event: sensor reader, data processor, output controller. Chạy trên STM32 hoặc Raspberry Pi Pico.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tools-row">
+    <div class="tool-group">
+      <div class="tool-group-label">Ngôn ngữ &amp; Công cụ</div>
+      <div class="tool-tags">
+        <span class="tag">C99/C++14</span><span class="tag">STM32CubeIDE</span>
+        <span class="tag">QSPY Tracer</span><span class="tag">PlantUML</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Tài liệu tham khảo</div>
+      <div class="tool-tags">
+        <span class="tag">Practical UML Statecharts — M.Samek</span>
+        <span class="tag">Design Patterns for Embedded</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Hardware (optional)</div>
+      <div class="tool-tags">
+        <span class="tag">STM32F4</span><span class="tag">RP2040</span>
+        <span class="tag">Logic Analyzer</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ MODULE 3 ════════════════════════════════ -->
+<div class="module-section">
+  <div class="module-header">
+    <div class="module-badge m3-badge">
+      <span class="badge-num">03</span>
+      <span class="badge-label">MODULE</span>
+    </div>
+    <div class="module-title-block">
+      <div class="module-tag">Tuần 7 — Tuần 9 &nbsp;·&nbsp; OS Layer</div>
+      <div class="module-name" style="color:var(--m3)">Embedded<br>Linux Basics</div>
+      <div class="module-objective">
+        Linux không chỉ là "dùng lệnh". Module này đưa bạn vào lõi của hệ điều hành phổ biến
+        nhất thế giới nhúng: boot process, kernel configuration, device tree, và viết
+        Linux device driver từ đầu.
+      </div>
+      <div class="module-stats">
+        <span class="stat" style="color:var(--m3)">3 Tuần học</span>
+        <span class="stat" style="color:var(--text-dim)">Linux / C</span>
+        <span class="stat" style="color:var(--text-dim)">3 Mini Projects</span>
+        <span class="stat" style="color:var(--text-dim)">1 Capstone</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="weeks-grid">
+    <div class="week">
+      <div class="week-label m3">
+        <span class="week-num">WEEK 07</span>
+        <span class="week-name">Linux Boot &amp; Kernel</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m3">
+          <li>Embedded Linux stack: bootloader → kernel → rootfs → app</li>
+          <li>U-Boot: cấu hình, boot commands, environment vars</li>
+          <li>Linux Kernel: menuconfig, build từ source code</li>
+          <li>Device Tree Blob (DTB): syntax, node, property, phandle</li>
+          <li>Initramfs vs rootfs trên eMMC/SD/NAND</li>
+          <li>Buildroot: tạo minimal Linux image từ scratch</li>
+          <li>Cross-compilation toolchain: arm-linux-gnueabihf</li>
+          <li>QEMU emulation — test không cần phần cứng</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m3">
+        <span class="week-num">WEEK 08</span>
+        <span class="week-name">Linux Device Drivers</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m3">
+          <li>Kernel module: init, exit, module_init macro</li>
+          <li>Character device driver: open, read, write, ioctl</li>
+          <li>Sysfs &amp; /proc filesystem — expose kernel data</li>
+          <li>GPIO subsystem: gpio_request, gpio_set_value, IRQ</li>
+          <li>Interrupt handling trong kernel: request_irq, tasklet</li>
+          <li>I2C driver framework — i2c_driver, i2c_client</li>
+          <li>SPI driver framework — spi_driver, spi_transfer</li>
+          <li>Platform driver &amp; device tree integration</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m3">
+        <span class="week-num">WEEK 09</span>
+        <span class="week-name">Linux IPC &amp; User Space</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m3">
+          <li>Linux IPC: pipe, FIFO, message queue, shared memory</li>
+          <li>POSIX signals — signal handling, sigaction</li>
+          <li>Unix domain socket — local IPC hiệu năng cao</li>
+          <li>mmap — memory-mapped I/O từ userspace</li>
+          <li>Netlink socket — kernel-to-userspace messaging</li>
+          <li>D-Bus cơ bản cho IoT applications</li>
+          <li>Systemd service: viết và deploy embedded service</li>
+          <li>Power management: suspend, resume, wakeup sources</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-box">
+    <div class="project-header m3-s">
+      <span class="project-icon">PROJECT</span>
+      <span class="project-title">Module 3 — Capstone Projects</span>
+    </div>
+    <div class="project-body">
+      <ul class="project-list">
+        <li>
+          <span class="proj-num">P3.1</span>
+          <div class="proj-content">
+            <div class="proj-name">Custom Linux Image với Buildroot</div>
+            <div class="proj-desc">Build minimal Linux image cho Raspberry Pi 4 / BeagleBone: custom kernel config, tối thiểu hóa rootfs về &lt;32MB, thêm các package cần thiết, boot time dưới 5 giây.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P3.2</span>
+          <div class="proj-content">
+            <div class="proj-name">I2C Temperature Sensor Driver</div>
+            <div class="proj-desc">Viết Linux kernel driver hoàn chỉnh cho cảm biến BMP280/SHT3x: platform driver, device tree binding, character device interface, sysfs attributes, interrupt support.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P3.3</span>
+          <div class="proj-content">
+            <div class="proj-name">IoT Data Pipeline trên Embedded Linux</div>
+            <div class="proj-desc">Pipeline hoàn chỉnh: sensor driver → userspace app đọc qua /dev → xử lý dữ liệu → publish qua MQTT. Systemd service tự động restart, watchdog timer.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tools-row">
+    <div class="tool-group">
+      <div class="tool-group-label">Platform &amp; Tools</div>
+      <div class="tool-tags">
+        <span class="tag">Raspberry Pi 4</span><span class="tag">QEMU</span>
+        <span class="tag">Buildroot</span><span class="tag">Yocto</span>
+        <span class="tag">GDB Remote</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Tài liệu tham khảo</div>
+      <div class="tool-tags">
+        <span class="tag">Linux Device Drivers 3rd</span>
+        <span class="tag">Mastering Embedded Linux — C.Simmonds</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Hardware</div>
+      <div class="tool-tags">
+        <span class="tag">RPi 4 / BBB</span>
+        <span class="tag">BMP280</span><span class="tag">USB-UART</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ MODULE 4 ════════════════════════════════ -->
+<div class="module-section">
+  <div class="module-header">
+    <div class="module-badge m4-badge">
+      <span class="badge-num">04</span>
+      <span class="badge-label">MODULE</span>
+    </div>
+    <div class="module-title-block">
+      <div class="module-tag">Tuần 10 — Tuần 12 &nbsp;·&nbsp; RTOS Layer — Ultimate Challenge</div>
+      <div class="module-name" style="color:var(--m4)">Build Your<br>Own RTOS</div>
+      <div class="module-objective">
+        Đỉnh cao của chương trình: tự tay code từng thành phần cốt lõi của một Real-Time
+        Operating System. Từ context switching trên ARM Cortex-M đến semaphore, message
+        queue, memory allocator — mọi thứ được xây từ zero. Sản phẩm cuối: AK-mOS chạy
+        được trên phần cứng thực.
+      </div>
+      <div class="module-stats">
+        <span class="stat" style="color:var(--m4)">3 Tuần học</span>
+        <span class="stat" style="color:var(--text-dim)">ARM Cortex-M / C</span>
+        <span class="stat" style="color:var(--text-dim)">Iterative Build</span>
+        <span class="stat" style="color:var(--text-dim)">1 Full RTOS</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="weeks-grid">
+    <div class="week">
+      <div class="week-label m4">
+        <span class="week-num">WEEK 10</span>
+        <span class="week-name">Context Switch &amp; Scheduler</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m4">
+          <li>ARM Cortex-M architecture: registers, stack frame, PSP/MSP</li>
+          <li>SysTick timer — heartbeat của RTOS</li>
+          <li>PendSV exception — context switching mechanism</li>
+          <li>Task Control Block (TCB) structure</li>
+          <li>Stack initialization cho từng task</li>
+          <li>Round-robin scheduler từ scratch</li>
+          <li>Priority-based preemptive scheduler</li>
+          <li>Idle task và WFI (Wait For Interrupt) power saving</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m4">
+        <span class="week-num">WEEK 11</span>
+        <span class="week-name">Synchronization &amp; IPC</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m4">
+          <li>Critical section: disable/enable interrupt, BASEPRI</li>
+          <li>Binary semaphore — implementation từ struct</li>
+          <li>Counting semaphore — producer/consumer pattern</li>
+          <li>Mutex với priority inheritance — tránh priority inversion</li>
+          <li>Message queue — lock-free ring buffer</li>
+          <li>Task notification — lightweight signaling mechanism</li>
+          <li>Event flags / event group</li>
+          <li>Deadlock detection và tránh deadlock</li>
+        </ul>
+      </div>
+    </div>
+    <div class="week">
+      <div class="week-label m4">
+        <span class="week-num">WEEK 12</span>
+        <span class="week-name">Memory, Timers &amp; Polish</span>
+      </div>
+      <div class="week-body">
+        <div class="week-topic-title">Nội dung học</div>
+        <ul class="topic-list m4">
+          <li>Memory management: fixed-size block allocator (pool)</li>
+          <li>Heap_1 / Heap_4 style memory allocator implementation</li>
+          <li>Stack overflow detection — paint pattern, MPU guard</li>
+          <li>Software timer: one-shot và periodic, timer daemon task</li>
+          <li>Tick-less mode — dynamic tick cho low power</li>
+          <li>RTOS-aware debugging với SEGGER SystemView</li>
+          <li>CPU usage statistics, task runtime monitoring</li>
+          <li>Porting AK-mOS lên phần cứng thực + validation</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="project-box">
+    <div class="project-header m4-s">
+      <span class="project-icon">PROJECT</span>
+      <span class="project-title">Module 4 — AK-mOS: Full RTOS Build</span>
+    </div>
+    <div class="project-body">
+      <ul class="project-list">
+        <li>
+          <span class="proj-num">P4.1</span>
+          <div class="proj-content">
+            <div class="proj-name">AK-mOS Core: Scheduler &amp; Context Switch</div>
+            <div class="proj-desc">Implement AK-mOS kernel core: TCB, stack init, PendSV handler bằng assembly, SysTick ISR, round-robin + priority scheduler. Chạy được 4 tasks đồng thời trên STM32.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P4.2</span>
+          <div class="proj-content">
+            <div class="proj-name">AK-mOS IPC: Semaphore, Mutex, Queue</div>
+            <div class="proj-desc">Thêm IPC primitives: binary &amp; counting semaphore, mutex với priority inheritance, lock-free message queue. Test với classic problems: dining philosophers, producer-consumer.</div>
+          </div>
+        </li>
+        <li>
+          <span class="proj-num">P4.3</span>
+          <div class="proj-content">
+            <div class="proj-name">AK-mOS Complete: Memory + Timers + Demo App</div>
+            <div class="proj-desc">Hoàn thiện AK-mOS: memory pool allocator, software timers, stack guard. Demo application: multi-task sensor system sử dụng toàn bộ IPC primitives. Viết documentation đầy đủ.</div>
+          </div>
+        </li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="tools-row">
+    <div class="tool-group">
+      <div class="tool-group-label">Platform &amp; Tools</div>
+      <div class="tool-tags">
+        <span class="tag">STM32F4</span><span class="tag">Keil MDK</span>
+        <span class="tag">SEGGER J-Link</span><span class="tag">SystemView</span>
+        <span class="tag">OpenOCD</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Tài liệu tham khảo</div>
+      <div class="tool-tags">
+        <span class="tag">FreeRTOS Source Code</span>
+        <span class="tag">ARM Cortex-M Programming Guide</span>
+        <span class="tag">Using FreeRTOS — R.Barry</span>
+      </div>
+    </div>
+    <div class="tool-group">
+      <div class="tool-group-label">Tham khảo RTOS</div>
+      <div class="tool-tags">
+        <span class="tag">FreeRTOS</span><span class="tag">Zephyr</span>
+        <span class="tag">RT-Thread</span><span class="tag">embOS</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ SCHEDULE ════════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">05 /</span>
+    <span class="section-title">Lịch học tổng quan — 12 tuần</span>
+  </div>
+  <table class="schedule-table">
+    <thead>
+      <tr>
+        <th>Tuần</th>
+        <th>Module</th>
+        <th>Chủ đề chính</th>
+        <th>Deliverable / Milestone</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr><td class="wk-cell">W01</td><td><span class="mod-pill pill-1">M1</span></td><td class="topic-cell">Linear Data Structures — Array, List, Stack, Queue</td><td class="milestone-cell">Embedded DSL v0.1 — static linked list</td></tr>
+      <tr><td class="wk-cell">W02</td><td><span class="mod-pill pill-1">M1</span></td><td class="topic-cell">Trees, Graphs, Hash Tables — BST, AVL, BFS/DFS</td><td class="milestone-cell">Min-heap + BST implementation, unit tests pass</td></tr>
+      <tr><td class="wk-cell">W03</td><td><span class="mod-pill pill-1">M1</span></td><td class="topic-cell">Algorithms — Sorting, DP, Greedy, Bit Manipulation</td><td class="milestone-cell">P1 Capstone: Task Dispatcher + DSL hoàn chỉnh</td></tr>
+      <tr><td class="wk-cell">W04</td><td><span class="mod-pill pill-2">M2</span></td><td class="topic-cell">Finite State Machines — FSM, HSM, UML State Chart</td><td class="milestone-cell">Button + UART parser FSM chạy trên MCU</td></tr>
+      <tr><td class="wk-cell">W05</td><td><span class="mod-pill pill-2">M2</span></td><td class="topic-cell">Event Queue &amp; Pub/Sub — ISR-safe, message pool</td><td class="milestone-cell">mini-EDF framework v1.0</td></tr>
+      <tr><td class="wk-cell">W06</td><td><span class="mod-pill pill-2">M2</span></td><td class="topic-cell">Active Objects — RTC semantics, time events, QP/C</td><td class="milestone-cell">P2 Capstone: Multi-component app chạy thực</td></tr>
+      <tr><td class="wk-cell">W07</td><td><span class="mod-pill pill-3">M3</span></td><td class="topic-cell">Embedded Linux Boot — U-Boot, Kernel, Buildroot, DTB</td><td class="milestone-cell">Custom Linux image boot &lt;5s trên RPi4</td></tr>
+      <tr><td class="wk-cell">W08</td><td><span class="mod-pill pill-3">M3</span></td><td class="topic-cell">Linux Device Drivers — char dev, GPIO, I2C, IRQ</td><td class="milestone-cell">I2C sensor driver với sysfs interface</td></tr>
+      <tr><td class="wk-cell">W09</td><td><span class="mod-pill pill-3">M3</span></td><td class="topic-cell">Linux IPC &amp; Userspace — mmap, socket, systemd</td><td class="milestone-cell">P3 Capstone: IoT pipeline hoàn chỉnh</td></tr>
+      <tr><td class="wk-cell">W10</td><td><span class="mod-pill pill-4">M4</span></td><td class="topic-cell">RTOS Core — PendSV, TCB, Scheduler, Context Switch</td><td class="milestone-cell">AK-mOS: 4 tasks chạy song song trên STM32</td></tr>
+      <tr><td class="wk-cell">W11</td><td><span class="mod-pill pill-4">M4</span></td><td class="topic-cell">RTOS IPC — Semaphore, Mutex, Message Queue</td><td class="milestone-cell">Dining Philosophers + Producer-Consumer pass</td></tr>
+      <tr><td class="wk-cell">W12</td><td><span class="mod-pill pill-4">M4</span></td><td class="topic-cell">RTOS Memory, Timers &amp; Final Demo</td><td class="milestone-cell">AK-mOS hoàn chỉnh + Documentation</td></tr>
+    </tbody>
+  </table>
+</div>
+
+<!-- ═══════════════════════════════════════ FINAL PROJECT ════════════════════════════ -->
+<div class="section">
+  <div class="section-header">
+    <span class="section-num">06 /</span>
+    <span class="section-title">Final Project — Lựa chọn tốt nghiệp</span>
+  </div>
+  <div class="final-grid">
+    <div class="final-card" data-num="A">
+      <div class="final-card-tag">Option A · Hardcore</div>
+      <div class="final-card-title">Smart Gateway trên AK-mOS</div>
+      <div class="final-card-desc">
+        Xây dựng IoT gateway firmware hoàn chỉnh: AK-mOS làm RTOS nền tảng,
+        Event-Driven architecture quản lý các subsystems, giao tiếp với Linux host
+        qua UART/USB. Tasks: sensor reader, protocol parser, command handler,
+        telemetry uploader. Bài kiểm tra thực sự của toàn bộ kiến thức tích lũy.
+      </div>
+      <div class="final-card-stack">
+        <span class="stack-tag">AK-mOS</span>
+        <span class="stack-tag">STM32</span>
+        <span class="stack-tag">MQTT</span>
+        <span class="stack-tag">Event-Driven</span>
+        <span class="stack-tag">C</span>
+      </div>
+    </div>
+    <div class="final-card" data-num="B">
+      <div class="final-card-tag">Option B · Linux Focus</div>
+      <div class="final-card-title">Embedded Linux System từ Zero</div>
+      <div class="final-card-desc">
+        Build toàn bộ Embedded Linux system: custom Buildroot image, tự viết 2 device
+        drivers (GPIO + I2C), userspace daemon quản lý sensors qua event-driven
+        architecture, systemd integration, OTA update mechanism cơ bản. Mục tiêu:
+        production-quality embedded Linux application.
+      </div>
+      <div class="final-card-stack">
+        <span class="stack-tag">Embedded Linux</span>
+        <span class="stack-tag">Kernel Driver</span>
+        <span class="stack-tag">Buildroot</span>
+        <span class="stack-tag">Systemd</span>
+        <span class="stack-tag">RPi4</span>
+      </div>
+    </div>
+    <div class="final-card" data-num="C">
+      <div class="final-card-tag">Option C · Full Stack Embedded</div>
+      <div class="final-card-title">RTOS + Linux Dual Core System</div>
+      <div class="final-card-desc">
+        Dự án tham vọng nhất: STM32 chạy AK-mOS xử lý real-time tasks, giao tiếp
+        qua UART/SPI với Raspberry Pi chạy Embedded Linux. Linux side có custom driver,
+        userspace app, MQTT broker. Cả hai sides đều dùng Event-Driven architecture.
+        Showcase đầy đủ 4 modules.
+      </div>
+      <div class="final-card-stack">
+        <span class="stack-tag">AK-mOS</span>
+        <span class="stack-tag">Linux</span>
+        <span class="stack-tag">STM32 + RPi4</span>
+        <span class="stack-tag">Full Stack</span>
+      </div>
+    </div>
+    <div class="final-card" data-num="D">
+      <div class="final-card-tag">Option D · Open Topic</div>
+      <div class="final-card-title">Tự chọn — Propose &amp; Build</div>
+      <div class="final-card-desc">
+        Đề xuất dự án của riêng bạn. Yêu cầu: phải sử dụng ít nhất 3/4 module đã học,
+        có phần cứng thực, có documentation đầy đủ, demo được live. Được mentor review
+        và approve trước khi bắt đầu. Đây là cơ hội để build portfolio piece thực sự
+        nổi bật.
+      </div>
+      <div class="final-card-stack">
+        <span class="stack-tag">Min 3 Modules</span>
+        <span class="stack-tag">Real Hardware</span>
+        <span class="stack-tag">Your Vision</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════ FOOTER ══════════════════════════════════ -->
+<div class="divider"></div>
+<div class="footer">
+  <div class="footer-brand">
+    <strong>EMBEDDED BOOTCAMP</strong> &nbsp;·&nbsp; 12 WEEKS &nbsp;·&nbsp; 2026
+  </div>
+  <div class="progress-bar">
+    <div class="pb-seg s1" title="M1: Algorithm & DS"></div>
+    <div class="pb-seg s2" title="M2: Event-Driven"></div>
+    <div class="pb-seg s3" title="M3: Embedded Linux"></div>
+    <div class="pb-seg s4" title="M4: Build RTOS"></div>
+  </div>
+  <div style="font-family:'Share Tech Mono',monospace;font-size:10px;color:var(--text-dim);letter-spacing:2px;">
+    BUILD · TEST · SHIP · REPEAT
+  </div>
+</div>
+
+</body>
+</html>
